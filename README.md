@@ -19,4 +19,9 @@ Team: Mari, Hala, Tiffany
 
 `python -m pip install -r requirements.txt`
 
+## Data Source Selection
+-------------------
+We will use Our World in Data Covid-19 data for all countries in the world: https://github.com/owid/covid-19-data
+
+CSV file here: https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv
 
