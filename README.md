@@ -16,6 +16,6 @@ Team: Mari, Hala, Tiffany
 `source env/bin/activate`
 
 5. Install dependencies in your virtual environment (activated) with the command:
-	`python -m pip install -r requirements.txt`
+`python -m pip install -r requirements.txt`
 
 
