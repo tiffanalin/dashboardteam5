@@ -1,0 +1,12 @@
+###### Use the command below to install the packages 
+###### according to the configuration file requirements.txt.
+# pip install -r requirements.txt
+
+###### Requirements without Version Specifiers ######
+Pandas
+Matplotlib
+JupyterLab
+Streamlit
+
+###### Requirements with Version Specifiers ######
+# coming soon =)
