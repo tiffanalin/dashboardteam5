@@ -3,16 +3,19 @@ Open source dashboarding project
 
 Team: Mari, Hala, Tiffany
 
-## Create Conda environment:
+## Setup instructions:
 
-`conda create --name your_env_name`
+1. Clone the repository
+2. Open terminal and go to the directory of the project repository.
+3. Inside your project repository, create a virtual environment with the Python venv module:
 
-## Install dependencies using conda:
+`python -m venv env`
 
-`conda install pandas`
+4. Now activate your virtual environment:
 
-`conda install matplotlib`
+`source env/bin/activate`
 
-`conda install jupyterlab`
+5. Install dependencies in your virtual environment (activated) with the command:
+	`python -m pip install -r requirements.txt`
 
-`conda install streamlit`
+
