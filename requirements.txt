@@ -4,6 +4,7 @@
 
 ###### Requirements without Version Specifiers ######
 Pandas
+Plotly
 Matplotlib
 JupyterLab
 Streamlit
