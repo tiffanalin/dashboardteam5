@@ -1,11 +1,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import warnings
+warnings.filterwarnings("ignore")
 
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
 # read csv from a URL
-@st.experimental_memo
+@st.cache_data
 def get_data() -> pd.DataFrame:
     return pd.read_csv(dataset_url)
 
@@ -22,8 +24,7 @@ print("Data intformation",df.info())
 print('Data describtion',df.describe())
 
 def get_indexes(x):
-    
-    
+        
     index_fill_1 = [i for i in range(x.index[0], x.dropna().index[0])]    
     index_interpolate = [i for i in range(x.dropna().index[0], x.index[-1])]
     return index_fill_1, index_interpolate
@@ -80,7 +81,6 @@ def get_Final_df(df,transform_cols):
     return df_final
 
 df_final=get_Final_df(df,transform_cols)
-
 
 
 #data
