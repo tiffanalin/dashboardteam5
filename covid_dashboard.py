@@ -16,12 +16,12 @@ df = get_data()
 
 df["year"]=df["date"].str[0:4]
 
-print(df.shape)
-print('Total unique continents:',len(df.continent.unique()))
-print('Total unique countries:',len(df.location.unique()))
-print('Date span:',df.date.min(),df.date.max())
-print("Data intformation",df.info())
-print('Data describtion',df.describe())
+#print(df.shape)
+#print('Total unique continents:',len(df.continent.unique()))
+#print('Total unique countries:',len(df.location.unique()))
+#print('Date span:',df.date.min(),df.date.max())
+#print("Data intformation",df.info())
+#print('Data describtion',df.describe())
 
 def get_indexes(x):
         
@@ -81,20 +81,52 @@ def get_Final_df(df,transform_cols):
     return df_final
 
 df_final=get_Final_df(df,transform_cols)
-
+countries_list=df_final.location.unique()
 
 #data
 st.header("Covid-19 Data")
 # -- Get the user input
-year_col, continent_col,= st.columns([5, 5])
+
+if 'dummy_data' not in st.session_state.keys():
+    dummy_data = countries_list
+    st.session_state['dummy_data'] = dummy_data
+else:
+    dummy_data = st.session_state['dummy_data']
+
+def checkbox_container(data):
+    st.sidebar.header('Select Countries: ')
+   
+    cols = st.sidebar.columns(2)
+   
+    if cols[0].button('Select All'):
+        for i in data:
+            st.session_state['dynamic_checkbox_' + i] = True
+        st.experimental_rerun()
+    if cols[1].button('UnSelect All'):
+        for i in data:
+            st.session_state['dynamic_checkbox_' + i] = False
+        st.experimental_rerun()
+    for i in data:
+        st.sidebar.checkbox(i, key='dynamic_checkbox_' + i)
+
+def get_selected_checkboxes():
+    return [i.replace('dynamic_checkbox_','') for i in st.session_state.keys() if i.startswith('dynamic_checkbox_') and st.session_state[i]]
+
+
+checkbox_container(dummy_data)
+st.sidebar.write('You selected:')
+st.sidebar.write(get_selected_checkboxes())
+
+year_col, continent_col,= st.columns([5,5])
+
 with year_col:
     year_choice = st.selectbox(
-        "What year would you like to look at?",
+        "Choose a year",
         ("2020","2021","2022","2023"),
     )
 with continent_col:
     continent_choice = st.selectbox(
-        "What continent would you like to look at?",
+        "Chooose Continent",
         ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
     )
 
