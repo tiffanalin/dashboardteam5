@@ -78,6 +78,15 @@ def get_Final_df(df,transform_cols):
 
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
+
+
+    #remove non-country data from 'location'
+    filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
+    df_final = df[~df['location'].isin(filter_out)]
+
+    #normalize data to population (1,000,000 people)
+    df[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
+
     return df_final
 
 df_final=get_Final_df(df,transform_cols)
