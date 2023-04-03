@@ -79,7 +79,8 @@ def get_Final_df(df,transform_cols):
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
-      #remove non-country data from 'location'
+
+    #remove non-country data from 'location'
     filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
     df_final = df[~df['location'].isin(filter_out)]
 
