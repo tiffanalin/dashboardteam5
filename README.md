@@ -2,7 +2,7 @@
 Open source dashboarding project
 
 Team: Mari, Hala, Tiffany
-sou
+
 ## Setup instructions:
 
 1. Clone the repository
@@ -19,15 +19,22 @@ sou
 
 `python -m pip install -r requirements.txt`
 
-## Data Source Selection
+## Data Source
 We will use Our World in Data Covid-19 data for all countries in the world: https://github.com/owid/covid-19-data
 
 CSV file here: https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv
 
 ## Streamlit 
 <b>Link to Streamlit Cloud: 
-https://docs.streamlit.io/streamlit-community-cloud 
-<b>Link to Streamlit App: 
-https://tiffanalin-dashboardteam5-covid-app-8i33k2.streamlit.app/ 
+https://docs.streamlit.io/streamlit-community-cloud </b>
 
-* just testing
+<b>Link to Streamlit App: 
+https://tiffanalin-dashboardteam5-covid-app-8i33k2.streamlit.app/ </b>
+
+## How to run the dashboard locally
+Use this commands to install Streamlit: `pip install streamlit`
+
+You should be able to run: `streamlit hello`
+
+Run project with this command:
+`streamlit run covid_dashboard.py`
