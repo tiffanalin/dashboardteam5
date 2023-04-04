@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 import warnings
 warnings.filterwarnings("ignore")
-import datetime
+from datetime import date
 
 #OWID Covid-19 Data
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
@@ -37,14 +37,14 @@ def update_series(x):
     
     # if there are all nulls in series replace with 1 
     if len(x.dropna()) == 0:
-        x = x.fillna(1)
+        x = x.fillna(0)
         return x
     
     else:
         index_fill_1, index_interpolate = get_indexes(x)
         x_fill_1 = x[x.index.isin(index_fill_1)]
         x_interpolate = x[x.index.isin(index_interpolate)]
-        x_fill_1 = x_fill_1.fillna(1)
+        x_fill_1 = x_fill_1.fillna(0)
         x_interpolate = x_interpolate.interpolate()
         return pd.concat([x_fill_1, x_interpolate])
 
@@ -56,6 +56,9 @@ transform_cols = ['total_cases',
                   'total_cases_per_million'
                   ]
 def get_Final_df(df,transform_cols):
+    #remove non-country data from 'location'
+    filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
+    df_final = df[~df['location'].isin(filter_out)]
 
     # loop through and subset each country to a list
     country_dfs = []
@@ -83,12 +86,8 @@ def get_Final_df(df,transform_cols):
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
-    #remove non-country data from 'location'
-    #filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
-    #df_final = df[~df['location'].isin(filter_out)]
-
     #normalize data to population (1,000,000 people)
-    df[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
+    df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
     return df_final
 
@@ -101,25 +100,29 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
 df = df[~df['location'].isin(filter_out)]
 countries = sorted(df['location'].unique())
-selected_countries = st.sidebar.multiselect("Select countries", countries)
+selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
 
-# Get the start and end dates from the date range selector
-start_date = st.sidebar.date_input('Start date', max_value=datetime.date(year=2050, month=12, day=31))
-end_date = st.sidebar.date_input('End date', max_value=datetime.date(year=2050, month=12, day=31))
+# updates graph based on selected countries
+def update_graph(selected_countries):
+    filtered_df=df_final[df_final['location'].isin(selected_countries)]
+    fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
+    st.plotly_chart(fig)
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 
+# calls the update function initially and whenever selected options change 
+update_graph(selected_countries)
+#st.multiselect("Select countries:",countries, default = selected_countries, on_change=update_graph)
+
+# Get the start and end dates from the date range selector
+select_date = st.sidebar.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
+
+
 #filter data
-filtered_df = df_final[(df_final.year == start_date)]
+filtered_df = df_final[(df_final.date == select_date)]
 filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
 
-# Plot data
-fig = px.line(df, x='date', y='new_cases', color='location', labels={
-    'date': 'Date',
-    'new_cases': 'Cases' if cases_or_deaths == 'cases' else 'Deaths',
-    'location': 'Country'})
-st.plotly_chart(fig)
 
 # -- Create the figure in Plotly
 fig = px.scatter(
