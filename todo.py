@@ -1,15 +1,5 @@
-# from libs import *
-# from functions import *
-
-#streamlit
-import streamlit as st
-
-#data dependencies 
-import pandas as pd
-import plotly.express as px
-import warnings
-warnings.filterwarnings("ignore")
-from datetime import date
+from libs import *
+from functions import *
 
 ########## DATA ###########
 #OWID Covid-19 Data
@@ -17,8 +7,15 @@ dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/
 
 # read csv from a URL
 @st.cache_data
-def get_data() -> pd.DataFrame:
-    return pd.read_csv(dataset_url)
+def get_data(nrows = -1) -> pd.DataFrame:
+    nrows = 100
+    if (nrows > 0): 
+        data = pd.read_csv(dataset_url, nrows=nrows)
+    else: 
+        data = pd.read_csv(dataset_url)
+
+    # return pd.read_csv(dataset_url)
+    return data
 
 df = get_data()
 
@@ -88,6 +85,7 @@ def get_Final_df(df,transform_cols):
     df_final[columns] = df_final[columns].apply(lambda x: (x/(df["population"])*1000000),axis=0)
     
     # todo: Mari -  get x,y
+    df_final = get_geolocation(df_final)
 
     # Raw data - total_cases/total_deaths
     # Cumulative data 
@@ -108,7 +106,6 @@ data_load_state.text("Done with loading! (using st.cache_data)")
 if st.checkbox('Show raw data'):
     st.subheader('Raw data')
     st.write(df_final.head())
-st.header("Hello")
 countries_list = df_final.location.unique()
 
 # ########## SIDEBAR ########### 
@@ -120,61 +117,74 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 # select data type
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
 
+# multiselect countries after filtering non-country locations
+df = df[~df['location'].isin(filter_out)]
+countries = sorted(df['location'].unique())
+# options = ['France', 'United States', 'Germany', 'United Kingdom', 'Italy', 'World']
 
-# # multiselect countries after filtering non-country locations
-# df = df[~df['location'].isin(filter_out)]
-# countries = sorted(df['location'].unique())
-# selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
+# default_values = ['France', 'World']
+# default_values = [value for value in default_values if value in options]  # Remove missing values
 
-# # date range selector
+# selected_countries = st.sidebar.multiselect("Select countries", options=options, default=default_values, key='w1')
+
+# selected_countries = st.sidebar.multiselect("Select countries", options=countries, default = ['France','World'], key='w1')
+
+# date range selector
 # select_date = st.sidebar.date_input('Choose a date range:', value=(date(2020,1,1),date(2020,1,31)), min_value=date(2019,12,1),max_value=date(2023,4,30), key='w2')
 
-
-
 # ########## MAIN PAGE ########### 
-# st.header(":mask: Covid-19 Dashboard")
+st.header(":mask: Covid-19 Dashboard")
 
-# # updates graph based on selected countries
+# updates graph based on selected countries
 # def update_graph(selected_countries, start_date, end_date):
-#     filtered_df=df_final[(df_final['location'].isin(selected_countries)) & (df_final['date'] >= start_date) & (df_final['date'] <= end_date)]
+#     filtered_df = df_final[(df_final['location'].isin(selected_countries)) & (df_final['date'] >= start_date) & (df_final['date'] <= end_date)]
 #     fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
 #     fig.update_layout(
-#         xaxis_title='Date',
-#         yaxis_title='New cases (smoothed)',
-#         legend_title='Location'
+#         xaxis_title = 'Date',
+#         yaxis_title = 'New cases (smoothed)',
+#         legend_title = 'Location'
 #     )
 #     st.plotly_chart(fig)
 
 
-# # calls the update function initially and whenever selected options change 
+# calls the update function initially and whenever selected options change 
 # update_graph(selected_countries, select_date[0].strftime('%Y-%m-%d'), select_date[1].strftime('%Y-%m-%d'))
-# #st.multiselect("Select countries:",countries, default = selected_countries, on_change=update_graph)
+# st.multiselect("Select countries:", countries, default = selected_countries, on_change=update_graph)
 
-# #filter data
+# filter data
+filtered_df = df_final
 # filtered_df = df_final[(df_final.date == select_date)]
 # filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
 # todo: is cases_or_deaths
+# column = ''
+# if cases_or_deaths == 'Cases':
+#     column = ''
+# elif cases_or_deaths == 'Deaths':
+#     column = ''
 
-# # -- Get the user input
-# year_col, continent_col,= st.columns([5,5])
+# filtered_df = filtered_df[(filtered_df[column = ''] == cases_or_deaths)]
+# filtered_df = filtered_df[(filtered_df[column ] == )]
 
-# with year_col:
-#     year_choice = st.selectbox(
-#        "Choose a year",
-#         ("2020","2021","2022","2023"),
-#     )
+# -- Get the user input
+year_col, continent_col,= st.columns([5,5])
 
-# with continent_col:
-#     continent_choice = st.selectbox(
-#         "Chooose Continent",
-#         ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
-#     )
+with year_col:
+    year_choice = st.selectbox(
+       "Choose a year",
+        ("2020","2021","2022","2023"),
+    )
+
+with continent_col:
+    continent_choice = st.selectbox(
+        "Chooose Continent",
+        ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
+    )
 
 # # -- Apply the year filter given by the user
 # filtered_df = df_final[(df_final.year == year_choice)]
 # # -- Apply the continent filter
-# #if continent_choice != "All":
-# #    filtered_df = filtered_df[filtered_df.continent == continent_choice]
+# if continent_choice != "All":
+#    filtered_df = filtered_df[filtered_df.continent == continent_choice]
 
 # # -- Create the figure in Plotly
 # fig = px.scatter(
@@ -184,7 +194,6 @@ data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative nu
 #    # size="new_deaths",
 #     color="continent",
 #     hover_name="iso_code",
-    
 #     size_max=60,
 # )
 # fig.update_layout(title="total cases vs. total deaths")
@@ -196,8 +205,8 @@ data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative nu
 # if continent_choice != "All":
 #     filtered_df = filtered_df[filtered_df.continent == continent_choice]
 
-# # todo: Mari - add # User can select to display or not the peak detection (for cumulative numbers only).
-# # not new cases, but smoth column
+# todo: Mari - add # User can select to display or not the peak detection (for cumulative numbers only).
+# not new cases, but smoth column
 # # -- Create the figure in Plotly
 # fig = px.scatter(
 #     filtered_df,
@@ -206,19 +215,21 @@ data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative nu
 #     # size="new_deaths",
 #     color="continent",
 #     hover_name="iso_code",
-    
 #     size_max=60,
 # )
 # fig.update_layout(title = "new cases vs. new deaths")
 # # -- Input the Plotly chart to the Streamlit interface
 # st.plotly_chart(fig, use_container_width=True)
 
-
 # df = filtered_df[["total_deaths","total_deaths","new_cases","new_deaths"]].apply(lambda x: (x-x.mean())/ x.std(), axis=0)
 # st.line_chart(df)
 # fig.update_layout(title="total cases vs. total deaths vs ")
 
-# todo: Mari
-# Raw number, cumulative number and the (rolling) average number of cases or deaths could be displayed.
-# Peak (wave) detection is implemented for cumulative number of cases or deaths
-# User can select to display or not the peak detection (for cumulative numbers only).
+
+selector = 'total_cases'
+m = leafmap.Map(tiles = 'stamentoner')
+m.add_heatmap(filtered_df, 
+    atitude='latitude', 
+    longitude = 'longitude', 
+    value = selector, name="Heat map", radius=20)
+m.to_streamlit(width=700,height=500,add__layer_control=True)
