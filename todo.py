@@ -88,14 +88,16 @@ def get_Final_df(df,transform_cols):
     df_final[columns] = df_final[columns].apply(lambda x: (x/(df["population"])*1000000),axis=0)
     
     # todo: Mari -  get x,y
-    
-    # todo: cumulativ + averrage Mari
+
     # Raw data - total_cases/total_deaths
     # Cumulative data 
     df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
     df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
-    # Average - for 7 day
-
+    
+    # Average - for N days
+    days = 7 #7-14
+    df_final['average_cases'] = df_final['cumulative_cases'].rolling(window = days).mean()
+    df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
     return df_final
 
 
@@ -116,7 +118,6 @@ countries_list = df_final.location.unique()
 # cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
 
 # # multiselect countries after filtering non-country locations
-# #todo: 3 - why again the same variable? duplicated
 # df = df[~df['location'].isin(filter_out)]
 # countries = sorted(df['location'].unique())
 # selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
