@@ -88,18 +88,27 @@ def get_Final_df(df,transform_cols):
     df_final[columns] = df_final[columns].apply(lambda x: (x/(df["population"])*1000000),axis=0)
     
     # todo: Mari -  get x,y
+    
     # todo: cumulativ + averrage Mari
-    # df_final['cumulativ'] = 
-    df_final.head()
+    # Raw data - total_cases/total_deaths
+    # Cumulative data 
+    df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
+    df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
+    # Average - for 7 day
 
     return df_final
+
 
 data_load_state = st.text('Loading data...')
 df_final = get_Final_df(df, transform_cols)
 data_load_state.text("Done with loading! (using st.cache_data)")
 
-countries_list = df_final.location.unique()
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df_final.head())
 st.header("Hello")
+countries_list = df_final.location.unique()
+
 # ########## SIDEBAR ########### 
 # st.sidebar.title(":mag_right: View Options:")
 
@@ -201,7 +210,7 @@ st.header("Hello")
 # st.plotly_chart(fig, use_container_width=True)
 
 
-# df=filtered_df[["total_deaths","total_deaths","new_cases","new_deaths"]].apply(lambda x: (x-x.mean())/ x.std(), axis=0)
+# df = filtered_df[["total_deaths","total_deaths","new_cases","new_deaths"]].apply(lambda x: (x-x.mean())/ x.std(), axis=0)
 # st.line_chart(df)
 # fig.update_layout(title="total cases vs. total deaths vs ")
 
