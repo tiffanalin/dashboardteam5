@@ -120,49 +120,42 @@ data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative nu
 # multiselect countries after filtering non-country locations
 df = df[~df['location'].isin(filter_out)]
 countries = sorted(df['location'].unique())
-# options = ['France', 'United States', 'Germany', 'United Kingdom', 'Italy', 'World']
-
-# default_values = ['France', 'World']
-# default_values = [value for value in default_values if value in options]  # Remove missing values
-
-# selected_countries = st.sidebar.multiselect("Select countries", options=options, default=default_values, key='w1')
-
-# selected_countries = st.sidebar.multiselect("Select countries", options=countries, default = ['France','World'], key='w1')
+selected_countries = st.sidebar.multiselect("Select countries", countries, default = ['France','World']) #, key='w1')
 
 # date range selector
-# select_date = st.sidebar.date_input('Choose a date range:', value=(date(2020,1,1),date(2020,1,31)), min_value=date(2019,12,1),max_value=date(2023,4,30), key='w2')
+select_date = st.sidebar.date_input('Choose a date range:', value=(date(2020,1,1),date(2020,1,31)), min_value=date(2019,12,1),max_value=date(2023,4,30), key='w2')
 
 # ########## MAIN PAGE ########### 
 st.header(":mask: Covid-19 Dashboard")
 
 # updates graph based on selected countries
-# def update_graph(selected_countries, start_date, end_date):
-#     filtered_df = df_final[(df_final['location'].isin(selected_countries)) & (df_final['date'] >= start_date) & (df_final['date'] <= end_date)]
-#     fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
-#     fig.update_layout(
-#         xaxis_title = 'Date',
-#         yaxis_title = 'New cases (smoothed)',
-#         legend_title = 'Location'
-#     )
-#     st.plotly_chart(fig)
+def update_graph(selected_countries, start_date, end_date):
+    filtered_df = df_final[(df_final['location'].isin(selected_countries)) & (df_final['date'] >= start_date) & (df_final['date'] <= end_date)]
+    fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
+    fig.update_layout(
+        xaxis_title = 'Date',
+        yaxis_title = 'New cases (smoothed)',
+        legend_title = 'Location'
+    )
+    st.plotly_chart(fig)
 
 
 # calls the update function initially and whenever selected options change 
-# update_graph(selected_countries, select_date[0].strftime('%Y-%m-%d'), select_date[1].strftime('%Y-%m-%d'))
-# st.multiselect("Select countries:", countries, default = selected_countries, on_change=update_graph)
+update_graph(selected_countries, select_date[0].strftime('%Y-%m-%d'), select_date[1].strftime('%Y-%m-%d'))
+st.multiselect("Select countries:", countries, default = selected_countries, on_change=update_graph)
 
 # filter data
 filtered_df = df_final
 # filtered_df = df_final[(df_final.date == select_date)]
 # filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
 # todo: is cases_or_deaths
-# column = ''
-# if cases_or_deaths == 'Cases':
-#     column = ''
-# elif cases_or_deaths == 'Deaths':
-#     column = ''
+column = ''
+if cases_or_deaths == 'Cases':
+    column = 'new_cases_smoothed'
+elif cases_or_deaths == 'Deaths':
+    column = 'new_deaths_smoothed'
 
-# filtered_df = filtered_df[(filtered_df[column = ''] == cases_or_deaths)]
+# filtered_df = filtered_df[filtered_df[column]]
 # filtered_df = filtered_df[(filtered_df[column ] == )]
 
 # -- Get the user input
@@ -180,25 +173,25 @@ with continent_col:
         ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
     )
 
-# # -- Apply the year filter given by the user
-# filtered_df = df_final[(df_final.year == year_choice)]
-# # -- Apply the continent filter
-# if continent_choice != "All":
-#    filtered_df = filtered_df[filtered_df.continent == continent_choice]
+# -- Apply the year filter given by the user
+filtered_df = df_final[(df_final.year == year_choice)]
+# -- Apply the continent filter
+if continent_choice != "All":
+   filtered_df = filtered_df[filtered_df.continent == continent_choice]
 
-# # -- Create the figure in Plotly
-# fig = px.scatter(
-#     filtered_df,
-#     x="total_cases",
-#     y="total_deaths",
-#    # size="new_deaths",
-#     color="continent",
-#     hover_name="iso_code",
-#     size_max=60,
-# )
-# fig.update_layout(title="total cases vs. total deaths")
-# # -- Input the Plotly chart to the Streamlit interface
-# st.plotly_chart(fig, use_container_width=True)
+# -- Create the figure in Plotly
+fig = px.scatter(
+    filtered_df,
+    x='date',
+    y=column,
+   # size="new_deaths",
+    color="continent",
+    hover_name="iso_code",
+    size_max=60,
+)
+fig.update_layout(title = column + "vs. date")
+# -- Input the Plotly chart to the Streamlit interface
+st.plotly_chart(fig, use_container_width=True)
 
 # filtered_df = df_final[(df_final.year == year_choice)]
 # # -- Apply the continent filter
