@@ -1,6 +1,5 @@
 from libs import *
 
-
-def func(){
+def func() {
         
 }
