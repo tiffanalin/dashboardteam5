@@ -24,11 +24,12 @@ We will use Our World in Data Covid-19 data for all countries in the world: http
 
 CSV file here: https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv
 
-## Streamlit 
+## Streamlit
 <b>Link to Streamlit Cloud: 
 https://docs.streamlit.io/streamlit-community-cloud </b>
 
 <b>Link to Streamlit App: 
+
 https://tiffanalin-dashboardteam5-covid-app-8i33k2.streamlit.app/ </b>
 
 ## How to run the dashboard locally
@@ -38,3 +39,4 @@ You should be able to run: `streamlit hello`
 
 Run project with this command:
 `streamlit run covid_dashboard.py`
+
