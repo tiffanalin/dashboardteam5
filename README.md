@@ -2,7 +2,7 @@
 Open source dashboarding project
 
 Team: Mari, Hala, Tiffany
-sou
+
 ## Setup instructions:
 
 1. Clone the repository
@@ -19,15 +19,16 @@ sou
 
 `python -m pip install -r requirements.txt`
 
-## Data Source Selection
+## Data Source Selection:
 We will use Our World in Data Covid-19 data for all countries in the world: https://github.com/owid/covid-19-data
 
 CSV file here: https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv
 
-## Streamlit 
+## Streamlit: 
 <b>Link to Streamlit Cloud: 
 https://docs.streamlit.io/streamlit-community-cloud 
 <b>Link to Streamlit App: 
 https://tiffanalin-dashboardteam5-covid-app-8i33k2.streamlit.app/ 
 
-* just testing
+## Software Heritage:
+[![](https://img.shields.io/badge/-Software%20Heritage-blue)](https://archive.softwareheritage.org/browse/origin/https://github.com/tiffanalin/dashboardteam5)
