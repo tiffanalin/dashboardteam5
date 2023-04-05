@@ -112,10 +112,14 @@ st.header("Hello")
 countries_list = df_final.location.unique()
 
 # ########## SIDEBAR ########### 
-# st.sidebar.title(":mag_right: View Options:")
+st.sidebar.title(":mag_right: View Options:")
 
-# # select box for cases vs. deaths
-# cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+# select box for cases vs. deaths
+cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+
+# select data type
+data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+
 
 # # multiselect countries after filtering non-country locations
 # df = df[~df['location'].isin(filter_out)]
@@ -149,7 +153,7 @@ countries_list = df_final.location.unique()
 # #filter data
 # filtered_df = df_final[(df_final.date == select_date)]
 # filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
-
+# todo: is cases_or_deaths
 
 # # -- Get the user input
 # year_col, continent_col,= st.columns([5,5])
@@ -160,7 +164,6 @@ countries_list = df_final.location.unique()
 #         ("2020","2021","2022","2023"),
 #     )
 
-# #todo: 5 - why "Americas"? - fix Hala
 # with continent_col:
 #     continent_choice = st.selectbox(
 #         "Chooose Continent",
