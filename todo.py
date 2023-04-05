@@ -50,13 +50,11 @@ transform_cols = ['total_cases',
                   'total_cases_per_million'
                   ]
 
-filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
+filter_out = ['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
 
 @st.cache_data
 def get_Final_df(df,transform_cols):
     #remove non-country data from 'location'
-    # filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
-    # filter_out = ['High income','Upper middle income','Low income','Lower middle income', 'Asia', 'Europe','Western Sahara','Oceania', 'North America', 'European Union','South America','Africa']
     df_final = df[~df['location'].isin(filter_out)]
 
     # loop through and subset each country to a list
@@ -110,7 +108,6 @@ st.header("Hello")
 
 # # multiselect countries after filtering non-country locations
 # #todo: 3 - why again the same variable? duplicated
-# # filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
 # df = df[~df['location'].isin(filter_out)]
 # countries = sorted(df['location'].unique())
 # selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
