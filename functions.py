@@ -17,19 +17,19 @@ def findGeocode(city):
         return findGeocode(city)  
 
 
-def get_geolocation(df_test):    
+def get_geolocation(df):    
     # each value from city column
     # will be fetched and sent to
     # function find_geocode   
-    for i in (df_test["location"]):
+    for i in (df["location"]):
         if findGeocode(i) != None:
             loc = findGeocode(i)
             # coordinates returned from function 
-            df_test["latitude"] = loc.latitude
+            df["latitude"] = loc.latitude
             print("lat", loc.latitude)
-            df_test["longitude"] = loc.longitude
+            df["longitude"] = loc.longitude
         else:
-            df_test["latitude"] = loc.latitude
-            df_test["longitude"] = loc.longitude
+            df["latitude"] = loc.latitude
+            df["longitude"] = loc.longitude
        
-    return df_test
+    return df
