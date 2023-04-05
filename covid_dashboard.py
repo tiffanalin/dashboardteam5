@@ -8,7 +8,6 @@ import warnings
 warnings.filterwarnings("ignore")
 from datetime import date
 
-########## DATA ###########
 #OWID Covid-19 Data
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
@@ -18,6 +17,7 @@ def get_data() -> pd.DataFrame:
     return pd.read_csv(dataset_url)
 
 df = get_data()
+
 
 df["year"]=df["date"].str[0:4]
 
@@ -186,6 +186,7 @@ filtered_df = df_final[(df_final.year == year_choice)]
 # -- Apply the continent filter
 #if continent_choice != "All":
 #    filtered_df = filtered_df[filtered_df.continent == continent_choice]
+
 
 # -- Create the figure in Plotly
 fig = px.scatter(
