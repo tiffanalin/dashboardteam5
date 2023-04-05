@@ -58,6 +58,7 @@ transform_cols = ['total_cases',
                   'total_deaths_per_million',
                   'total_cases_per_million'
                   ]
+@st.cache_data
 def get_Final_df(df,transform_cols):
     #remove non-country data from 'location'
     filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
