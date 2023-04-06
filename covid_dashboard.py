@@ -91,9 +91,15 @@ countries = sorted(df_final['location'].unique())
 # SIDEBAR
 st.sidebar.title(":mag_right: View Options:")
 cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+
+if cases_or_deaths == 'Cases':
+    y_data = 'new_cases_smoothed'
+    y_label = 'New Cases'
+else: 
+    y_data = 'new_deaths_smoothed'
+    y_label = 'New Deaths'
+
 selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
-
-
 
 
 # MAIN PAGE 
@@ -105,7 +111,7 @@ filtered_df = df_final[(df_final['location'].isin(selected_countries))]
 # updates graph based on selected countries
 
 
-fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
+fig = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
 st.plotly_chart(fig)
 # calls the update function initially and whenever selected options change 
 
