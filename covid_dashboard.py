@@ -1,27 +1,22 @@
+#streamlit
 import streamlit as st
+
+#data dependencies 
 import pandas as pd
 import plotly.express as px
 import warnings
 warnings.filterwarnings("ignore")
+from datetime import date
 
+#OWID Covid-19 Data
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
 # read csv from a URL
 @st.cache_data
 def get_data() -> pd.DataFrame:
     return pd.read_csv(dataset_url)
-
-
 df = get_data()
 
-df["year"]=df["date"].str[0:4]
-
-#print(df.shape)
-#print('Total unique continents:',len(df.continent.unique()))
-#print('Total unique countries:',len(df.location.unique()))
-#print('Date span:',df.date.min(),df.date.max())
-#print("Data intformation",df.info())
-#print('Data describtion',df.describe())
 
 def get_indexes(x):
         
@@ -51,7 +46,13 @@ transform_cols = ['total_cases',
                   'total_deaths_per_million',
                   'total_cases_per_million'
                   ]
-def get_Final_df(df,transform_cols):
+
+@st.cache_data
+def get_Final_df(df,transform_cols) -> pd.DataFrame:
+    df["year"]=df["date"].str[0:4]
+    #remove non-country data from 'location'
+    filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
+    df= df[~df['location'].isin(filter_out)]
 
     # loop through and subset each country to a list
     country_dfs = []
@@ -79,81 +80,63 @@ def get_Final_df(df,transform_cols):
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
-
-    #remove non-country data from 'location'
-    filter_out=['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
-    df_final = df[~df['location'].isin(filter_out)]
-
     #normalize data to population (1,000,000 people)
-    df[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
+    df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
     return df_final
 
 df_final=get_Final_df(df,transform_cols)
-countries_list=df_final.location.unique()
+countries = sorted(df_final['location'].unique())
 
-#data
-st.header("Covid-19 Data")
-# -- Get the user input
-
-if 'dummy_data' not in st.session_state.keys():
-    dummy_data = countries_list
-    st.session_state['dummy_data'] = dummy_data
-else:
-    dummy_data = st.session_state['dummy_data']
-
-def checkbox_container(data):
-    st.sidebar.header('Select Countries: ')
-   
-    cols = st.sidebar.columns(2)
-   
-    if cols[0].button('Select All'):
-        for i in data:
-            st.session_state['dynamic_checkbox_' + i] = True
-        st.experimental_rerun()
-    if cols[1].button('UnSelect All'):
-        for i in data:
-            st.session_state['dynamic_checkbox_' + i] = False
-        st.experimental_rerun()
-    for i in data:
-        st.sidebar.checkbox(i, key='dynamic_checkbox_' + i)
-
-def get_selected_checkboxes():
-    return [i.replace('dynamic_checkbox_','') for i in st.session_state.keys() if i.startswith('dynamic_checkbox_') and st.session_state[i]]
+# SIDEBAR
+st.sidebar.title(":mag_right: View Options:")
+cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
 
 
-checkbox_container(dummy_data)
-st.sidebar.write('You selected:')
-st.sidebar.write(get_selected_checkboxes())
 
-year_col, continent_col,= st.columns([5,5])
 
+# MAIN PAGE 
+st.header(":mask: Covid-19 Data")
+select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
+
+filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
+#filtered_df = filtered_df[(filtered_df.date == select_date)]
+# updates graph based on selected countries
+
+
+fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
+st.plotly_chart(fig)
+# calls the update function initially and whenever selected options change 
+
+#st.multiselect("Select countries:",countries, default = selected_countries, on_change=update_graph)
+
+year_col, continent_col,= st.columns([5, 5])
 with year_col:
     year_choice = st.selectbox(
-        "Choose a year",
+        "What year would you like to look at?",
         ("2020","2021","2022","2023"),
     )
 with continent_col:
     continent_choice = st.selectbox(
-        "Chooose Continent",
+        "What continent would you like to look at?",
         ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
     )
 
 
 # -- Apply the year filter given by the user
-filtered_df = df_final[(df_final.year == year_choice)]
+filtered_df1 = df_final[(df_final.year == year_choice)&(df_final['location'].isin(selected_countries))]
 # -- Apply the continent filter
 if continent_choice != "All":
-    filtered_df = filtered_df[filtered_df.continent == continent_choice]
-
+    filtered_df1 = filtered_df1[filtered_df1.continent == continent_choice]
 
 # -- Create the figure in Plotly
 fig = px.scatter(
-    filtered_df,
+    filtered_df1,
     x="total_cases",
     y="total_deaths",
-   # size="new_deaths",
-    color="continent",
+    size="new_deaths",
+    color="location",
     hover_name="iso_code",
     
     size_max=60,
