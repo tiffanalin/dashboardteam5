@@ -169,24 +169,18 @@ if continent_choice != "All":
     filtered_df1 = filtered_df1[filtered_df1.continent == continent_choice]
 
 # -- Create the figure in Plotly
-fig = px.scatter(
-    filtered_df1,
-    x="total_cases",
-    y="total_deaths",
-    size="new_deaths",
+fig = px.scatter(filtered_df1.groupby('location')[['iso_code','population','total_cases','total_deaths']].max().reset_index(),
+    x="population",
+    y="total_cases",
+    size="total_deaths",
     color="location",
     hover_name="iso_code",
     
     size_max=60,
 )
-fig.update_layout(title="total cases vs. total deaths")
+fig.update_layout(title="population vs. total cases with size as total deaths")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
-
-filtered_df = df_final[(df_final.year == year_choice)]
-# -- Apply the continent filter
-if continent_choice != "All":
-    filtered_df = filtered_df[filtered_df.continent == continent_choice]
 
 # -- Create the figure in Plotly
 fig = px.scatter(
