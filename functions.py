@@ -4,16 +4,16 @@ from libs import *
 def get_choice(cases_or_deaths, data_type):
     choice = ''
 
-    if cases_or_deaths == 'Cases':
+    if cases_or_deaths == 'cases':
         choice = 'cases'
-    elif cases_or_deaths == 'Deaths':
+    elif cases_or_deaths == 'deaths':
         choice = 'deaths'
 
-    if data_type == 'Raw number':
+    if data_type == 'raw number':
         column = 'new_'+ choice +'_smoothed'
-    elif data_type == 'Cumulative number':
+    elif data_type == 'C=cumulative number':
         column = 'cumulative_' + choice
-    elif data_type == 'Average - 7 days':
+    elif data_type == 'average - 7 days':
         column = 'average_' + choice
 
     return (choice, column)

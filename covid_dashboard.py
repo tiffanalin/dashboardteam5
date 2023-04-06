@@ -72,18 +72,31 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
-    #normalize data to population (1,000,000 people)
+    # normalize data to population (1,000,000 people)
     df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
-    # Raw data - total_cases/total_deaths
-    # Cumulative data 
+    # raw data - total_cases/total_deaths
+    # cumulative data 
     df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
     df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
     
-    # Average - for N days
+    # average - for N days
     days = 7
     df_final['average_cases'] = df_final['cumulative_cases'].rolling(window = days).mean()
     df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
+
+    # peak detection
+    deriv_cases = np.gradient(df_final['cumulative_cases'])
+    deriv_deaths = np.gradient(df_final['cumulative_deaths'])
+    
+    peak_cases = np.where(np.diff(np.sign(deriv_cases)) == -2)[0] + 1
+    peak_deaths = np.where(np.diff(np.sign(deriv_deaths)) == -2)[0] + 1
+    
+    df_final['peak_cases'] = 0
+    df_final['peak_deaths'] = 0
+    
+    df_final.loc[peak_cases, 'peak_cases'] = df_final.loc[peak_cases, 'cumulative_cases']
+    df_final.loc[peak_deaths, 'peak_deaths'] = df_final.loc[peak_deaths, 'cumulative_deaths']
 
     return df_final
 
@@ -93,6 +106,10 @@ df_final = get_Final_df(df, transform_cols)
 data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
 
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df_final)
+
 # SIDEBAR
 # select box for cases vs. deaths
 st.sidebar.title(":mag_right: View Options:")
@@ -100,34 +117,59 @@ st.sidebar.title(":mag_right: View Options:")
 # selected countries
 selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
 
-cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['cases', 'deaths'])
 
 # select data type
-data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+data_type = st.sidebar.selectbox("View Data type", ['raw number', 'cumulative number', 'average - 7 days'])
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 
-# select timeframe
-select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
-
 filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
-# filtered_df = filtered_df[(filtered_df.date == select_date)]
-# updates graph based on selected countries
+
+# select timeframe
+select_date = st.date_input('Choose a date range:', value=(date(2020,4,7), date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
+
+filtered_df['date'] = pd.to_datetime(filtered_df['date'])
+
+start_date = datetime.combine(select_date[0], datetime.min.time())
+end_date = datetime.combine(select_date[1], datetime.min.time())
+
+start_date = pd.Timestamp(start_date)
+end_date = pd.Timestamp(end_date)
+
+filtered_df = filtered_df[(filtered_df['date'] >= start_date) & (filtered_df['date'] <= end_date)]
 
 # General (common) data preparation - for all app
 # cases, data type
 choice, column = get_choice(cases_or_deaths, data_type)
 
+show_peaks = None
 if data_type == 'Cumulative number':
     # select to show peaks
-    show_peaks = st.sidebar.selectbox("Show peaks", ['Yes','No'])
-
+    show_peaks = st.sidebar.checkbox("Show peaks")
+    peak_column = 'peak_' + cases_or_deaths
+    st.header(peak_column)
+    peak_y_data = filtered_df[peak_column]
+    fig_2 = px.scatter(
+        filtered_df,
+        x = "date",
+        y = peak_y_data,
+        color = peak_column,
+        # hover_name="iso_code",
+        size_max = 60,
+    )
+    fig_2.update_layout(title="Peaks")
+    st.plotly_chart(fig_2, use_container_width=True)
 
 y_data = filtered_df[column]
-
-fig = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
-st.plotly_chart(fig)
+fig_1 = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
+# fig = fig_1
+# if show_peaks == True:
+#     # show peaks
+#     fig_2 = px.scatter()
+#     fig = fig_1 + fig_2
+st.plotly_chart(fig_1)
 
 year_col, continent_col,= st.columns([5, 5])
 with year_col:
