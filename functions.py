@@ -26,7 +26,7 @@ def get_geolocation(df):
             loc = findGeocode(i)
             # coordinates returned from function 
             df["latitude"] = loc.latitude
-            print("lat", loc.latitude)
+            # print("lat", loc.latitude)
             df["longitude"] = loc.longitude
         else:
             df["latitude"] = loc.latitude

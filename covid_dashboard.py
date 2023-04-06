@@ -1,15 +1,15 @@
-# from libs import *
-# from functions import *
+from libs import *
+from functions import *
 
-#streamlit
-import streamlit as st
+# #streamlit
+# import streamlit as st
 
-#data dependencies 
-import pandas as pd
-import plotly.express as px
-import warnings
-warnings.filterwarnings("ignore")
-from datetime import date
+# #data dependencies 
+# import pandas as pd
+# import plotly.express as px
+# import warnings
+# warnings.filterwarnings("ignore")
+# from datetime import date
 
 #OWID Covid-19 Data
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
@@ -85,39 +85,68 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
     #normalize data to population (1,000,000 people)
     df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
+    # todo: add cash mechanism, ask teacher why its long,
+    # df_final = get_geolocation(df_final)
+
+    # Raw data - total_cases/total_deaths
+    # Cumulative data 
+    df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
+    df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
+    
+    # Average - for N days
+    days = 7 #7-14
+    df_final['average_cases'] = df_final['cumulative_cases'].rolling(window = days).mean()
+    df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
+
     return df_final
 
-df_final=get_Final_df(df,transform_cols)
+
+data_load_state = st.text('Loading data...')
+df_final = get_Final_df(df, transform_cols)
+data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
 
+# todo: - delete
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df_final.head(10))
+# ----------
+
 # SIDEBAR
+# select box for cases vs. deaths
 st.sidebar.title(":mag_right: View Options:")
 cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
 
-if cases_or_deaths == 'Cases':
-    y_data = 'new_cases_smoothed'
-    y_label = 'New Cases'
-else: 
-    y_data = 'new_deaths_smoothed'
-    y_label = 'New Deaths'
+# todo: delete
+# if cases_or_deaths == 'Cases':
+#     y_data = 'new_cases_smoothed'
+#     y_label = 'New Cases'
+# else: 
+#     y_data = 'new_deaths_smoothed'
+#     y_label = 'New Deaths'
 
+
+# select data type
+data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+
+# selected countries
 selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
-
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
 
 filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
-#filtered_df = filtered_df[(filtered_df.date == select_date)]
+# filtered_df = filtered_df[(filtered_df.date == select_date)]
 # updates graph based on selected countries
 
+# General (common) data preparation - for all app
+# cases, data type, countries
+choice, column = get_choice(cases_or_deaths, data_type)
 
-fig = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
+# changed from y_data to filtered_df[column]. column is a string, which can be used as title
+fig = px.line(filtered_df, x = 'date', y = filtered_df[column], color = 'location')
 st.plotly_chart(fig)
-# calls the update function initially and whenever selected options change 
-
-#st.multiselect("Select countries:",countries, default = selected_countries, on_change=update_graph)
 
 year_col, continent_col,= st.columns([5, 5])
 with year_col:
@@ -133,7 +162,9 @@ with continent_col:
 
 
 # -- Apply the year filter given by the user
-filtered_df1 = df_final[(df_final.year == year_choice)&(df_final['location'].isin(selected_countries))]
+filtered_df1 = df_final[
+    (df_final.year == year_choice)&
+    (df_final['location'].isin(selected_countries))]
 # -- Apply the continent filter
 if continent_choice != "All":
     filtered_df1 = filtered_df1[filtered_df1.continent == continent_choice]

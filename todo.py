@@ -85,7 +85,6 @@ def get_Final_df(df,transform_cols):
     columns = ['total_cases','new_cases','total_deaths','new_deaths','total_cases_per_million']
     df_final[columns] = df_final[columns].apply(lambda x: (x/(df["population"])*1000000),axis=0)
     
-    # todo: Mari -  get x,y
     # todo: add cash mechanism, ask teacher why its long,
     # df_final = get_geolocation(df_final)
 
