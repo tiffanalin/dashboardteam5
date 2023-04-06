@@ -86,7 +86,8 @@ def get_Final_df(df,transform_cols):
     df_final[columns] = df_final[columns].apply(lambda x: (x/(df["population"])*1000000),axis=0)
     
     # todo: Mari -  get x,y
-    df_final = get_geolocation(df_final)
+    # todo: add cash mechanism, ask teacher why its long,
+    # df_final = get_geolocation(df_final)
 
     # Raw data - total_cases/total_deaths
     # Cumulative data 
@@ -106,11 +107,11 @@ data_load_state.text("Done with loading! (using st.cache_data)")
 
 if st.checkbox('Show raw data'):
     st.subheader('Raw data')
-    st.write(df_final.head())
+    st.write(df_final.head(10))
 countries_list = df_final.location.unique()
 
 # ########## SIDEBAR ########### 
-st.sidebar.title(":mag_right: View Options:")
+# st.sidebar.title(":mag_right: View Options:")
 
 # select box for cases vs. deaths
 cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
@@ -127,7 +128,7 @@ countries = sorted(df['location'].unique())
 select_date = st.sidebar.date_input('Choose a date range:', value=(date(2020,1,1),date(2020,1,31)), min_value=date(2019,12,1),max_value=date(2023,4,30), key='w2')
 
 # ########## MAIN PAGE ########### 
-st.header(":mask: Covid-19 Dashboard")
+# st.header(":mask: Covid-19 Dashboard")
 
 # # updates graph based on selected countries
 # def update_graph(selected_countries, start_date, end_date):
@@ -152,28 +153,17 @@ filtered_df = df_final
 # todo: is cases_or_deaths
 
 # SELECTOR for Cases or Death, Raw/Cumulative/Average
-column = ''
-if cases_or_deaths == 'Cases':
-    if data_type == 'Raw number':
-        column = 'new_cases_smoothed'
-    elif data_type == 'Cumulative number':
-        column = 'cumulative_cases'
-    elif data_type == 'Average - 7 days':
-        column = 'average_cases'
-elif cases_or_deaths == 'Deaths':
-    if data_type == 'Raw number':
-        column = 'new_deaths_smoothed'
-    elif data_type == 'Cumulative number':
-        column = 'cumulative_deaths'
-    elif data_type == 'Average - 7 days':
-        column = 'average_deaths'
+# algo to choose 
+choice, column = get_choice(cases_or_deaths, data_type)
 
 # st.text("Chart by",column)
-tickerSymbol = 'SYMB'
-tickerData = yf.Ticker(tickerSymbol)
+# tickerSymbol = 'SYMB'
+# tickerData = yf.Ticker(tickerSymbol)
 # filtr_for_case_raw_cul_avr = tickerData.history(period = 'date', start = '',end = '')
-filtr_for_case_raw_cul_avr = tickerData.history(period = 'date')
+# df_filtr_for_case_raw_cul_avr = tickerData.history(period = 'date')
+
 st.line_chart(filtered_df[column])
+# st.line_chart(filtered_df[column])
 
 # # filtered_df = filtered_df[filtered_df[column]]
 # # filtered_df = filtered_df[(filtered_df[column ] == )]
@@ -240,3 +230,4 @@ st.line_chart(filtered_df[column])
 
 # Map
 # get_map(filtered_df)
+st.header("FINISHED")
