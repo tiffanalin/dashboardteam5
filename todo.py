@@ -8,6 +8,7 @@ dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/
 # read csv from a URL
 @st.cache_data
 def get_data(nrows = -1) -> pd.DataFrame:
+    # todo: back to full number
     nrows = 100
     if (nrows > 0): 
         data = pd.read_csv(dataset_url, nrows=nrows)
@@ -120,7 +121,7 @@ data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative nu
 # multiselect countries after filtering non-country locations
 df = df[~df['location'].isin(filter_out)]
 countries = sorted(df['location'].unique())
-selected_countries = st.sidebar.multiselect("Select countries", countries, default = ['France','World']) #, key='w1')
+# selected_countries = st.sidebar.multiselect("Select countries", countries, default = ['France','World']) #, key='w1')
 
 # date range selector
 select_date = st.sidebar.date_input('Choose a date range:', value=(date(2020,1,1),date(2020,1,31)), min_value=date(2019,12,1),max_value=date(2023,4,30), key='w2')
@@ -128,70 +129,89 @@ select_date = st.sidebar.date_input('Choose a date range:', value=(date(2020,1,1
 # ########## MAIN PAGE ########### 
 st.header(":mask: Covid-19 Dashboard")
 
-# updates graph based on selected countries
-def update_graph(selected_countries, start_date, end_date):
-    filtered_df = df_final[(df_final['location'].isin(selected_countries)) & (df_final['date'] >= start_date) & (df_final['date'] <= end_date)]
-    fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
-    fig.update_layout(
-        xaxis_title = 'Date',
-        yaxis_title = 'New cases (smoothed)',
-        legend_title = 'Location'
-    )
-    st.plotly_chart(fig)
+# # updates graph based on selected countries
+# def update_graph(selected_countries, start_date, end_date):
+#     filtered_df = df_final[(df_final['location'].isin(selected_countries)) & (df_final['date'] >= start_date) & (df_final['date'] <= end_date)]
+#     fig = px.line(filtered_df, x='date', y='new_cases_smoothed', color='location')
+#     fig.update_layout(
+#         xaxis_title = 'Date',
+#         yaxis_title = 'New cases (smoothed)',
+#         legend_title = 'Location'
+#     )
+#     st.plotly_chart(fig)
 
 
-# calls the update function initially and whenever selected options change 
-update_graph(selected_countries, select_date[0].strftime('%Y-%m-%d'), select_date[1].strftime('%Y-%m-%d'))
-st.multiselect("Select countries:", countries, default = selected_countries, on_change=update_graph)
+# # calls the update function initially and whenever selected options change 
+# update_graph(selected_countries, select_date[0].strftime('%Y-%m-%d'), select_date[1].strftime('%Y-%m-%d'))
+# st.multiselect("Select countries:", countries, default = selected_countries, on_change=update_graph)
 
 # filter data
 filtered_df = df_final
 # filtered_df = df_final[(df_final.date == select_date)]
 # filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
 # todo: is cases_or_deaths
+
+# SELECTOR for Cases or Death, Raw/Cumulative/Average
 column = ''
 if cases_or_deaths == 'Cases':
-    column = 'new_cases_smoothed'
+    if data_type == 'Raw number':
+        column = 'new_cases_smoothed'
+    elif data_type == 'Cumulative number':
+        column = 'cumulative_cases'
+    elif data_type == 'Average - 7 days':
+        column = 'average_cases'
 elif cases_or_deaths == 'Deaths':
-    column = 'new_deaths_smoothed'
+    if data_type == 'Raw number':
+        column = 'new_deaths_smoothed'
+    elif data_type == 'Cumulative number':
+        column = 'cumulative_deaths'
+    elif data_type == 'Average - 7 days':
+        column = 'average_deaths'
 
-# filtered_df = filtered_df[filtered_df[column]]
-# filtered_df = filtered_df[(filtered_df[column ] == )]
+# st.text("Chart by",column)
+tickerSymbol = 'SYMB'
+tickerData = yf.Ticker(tickerSymbol)
+# filtr_for_case_raw_cul_avr = tickerData.history(period = 'date', start = '',end = '')
+filtr_for_case_raw_cul_avr = tickerData.history(period = 'date')
+st.line_chart(filtered_df[column])
 
-# -- Get the user input
-year_col, continent_col,= st.columns([5,5])
+# # filtered_df = filtered_df[filtered_df[column]]
+# # filtered_df = filtered_df[(filtered_df[column ] == )]
 
-with year_col:
-    year_choice = st.selectbox(
-       "Choose a year",
-        ("2020","2021","2022","2023"),
-    )
+# # -- Get the user input
+# year_col, continent_col,= st.columns([5,5])
 
-with continent_col:
-    continent_choice = st.selectbox(
-        "Chooose Continent",
-        ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
-    )
+# with year_col:
+#     year_choice = st.selectbox(
+#        "Choose a year",
+#         ("2020","2021","2022","2023"),
+#     )
 
-# -- Apply the year filter given by the user
-filtered_df = df_final[(df_final.year == year_choice)]
-# -- Apply the continent filter
-if continent_choice != "All":
-   filtered_df = filtered_df[filtered_df.continent == continent_choice]
+# with continent_col:
+#     continent_choice = st.selectbox(
+#         "Chooose Continent",
+#         ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
+#     )
 
-# -- Create the figure in Plotly
-fig = px.scatter(
-    filtered_df,
-    x='date',
-    y=column,
-   # size="new_deaths",
-    color="continent",
-    hover_name="iso_code",
-    size_max=60,
-)
-fig.update_layout(title = column + "vs. date")
-# -- Input the Plotly chart to the Streamlit interface
-st.plotly_chart(fig, use_container_width=True)
+# # -- Apply the year filter given by the user
+# filtered_df = df_final[(df_final.year == year_choice)]
+# # -- Apply the continent filter
+# if continent_choice != "All":
+#    filtered_df = filtered_df[filtered_df.continent == continent_choice]
+
+# # -- Create the figure in Plotly
+# fig = px.scatter(
+#     filtered_df,
+#     x='date',
+#     y=column,
+#    # size="new_deaths",
+#     color="continent",
+#     hover_name="iso_code",
+#     size_max=60,
+# )
+# fig.update_layout(title = column + "vs. date")
+# # -- Input the Plotly chart to the Streamlit interface
+# st.plotly_chart(fig, use_container_width=True)
 
 # filtered_df = df_final[(df_final.year == year_choice)]
 # # -- Apply the continent filter
@@ -218,11 +238,5 @@ st.plotly_chart(fig, use_container_width=True)
 # st.line_chart(df)
 # fig.update_layout(title="total cases vs. total deaths vs ")
 
-
-selector = 'total_cases'
-m = leafmap.Map(tiles = 'stamentoner')
-m.add_heatmap(filtered_df, 
-    atitude='latitude', 
-    longitude = 'longitude', 
-    value = selector, name="Heat map", radius=20)
-m.to_streamlit(width=700,height=500,add__layer_control=True)
+# Map
+# get_map(filtered_df)

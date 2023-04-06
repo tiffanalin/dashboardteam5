@@ -12,3 +12,6 @@ from datetime import date
 from geopy.exc import GeocoderTimedOut
 from geopy.geocoders import Nominatim
 import leafmap.foliumap as leafmap
+
+# chart
+import yfinance as yf

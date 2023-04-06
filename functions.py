@@ -33,3 +33,14 @@ def get_geolocation(df):
             df["longitude"] = loc.longitude
        
     return df
+
+
+
+def get_map(filtered_df):
+    selector = 'total_cases'
+    m = leafmap.Map(tiles = 'stamentoner')
+    m.add_heatmap(filtered_df, 
+        atitude='latitude', 
+        longitude = 'longitude', 
+        value = selector, name="Heat map", radius=20)
+    m.to_streamlit(width=700,height=500,add__layer_control=True)
