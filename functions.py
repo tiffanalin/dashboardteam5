@@ -1,4 +1,4 @@
-from libs import *
+# from libs import *
 
 # getting special name of column in df
 def get_choice(cases_or_deaths, data_type):
