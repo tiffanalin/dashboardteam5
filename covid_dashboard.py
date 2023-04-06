@@ -96,13 +96,14 @@ countries = sorted(df_final['location'].unique())
 # SIDEBAR
 # select box for cases vs. deaths
 st.sidebar.title(":mag_right: View Options:")
+
+# selected countries
+selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
+
 cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
 
 # select data type
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
-
-# selected countries
-selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
@@ -117,6 +118,12 @@ filtered_df = df_final[(df_final['location'].isin(selected_countries))]
 # General (common) data preparation - for all app
 # cases, data type
 choice, column = get_choice(cases_or_deaths, data_type)
+
+if data_type == 'Cumulative number':
+    # select to show peaks
+    show_peaks = st.sidebar.selectbox("Show peaks", ['Yes','No'])
+
+
 y_data = filtered_df[column]
 
 fig = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
