@@ -128,7 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# PyCharm
+.idea
+
 # For Mac
 .DS_Store
-.idea
+
 
