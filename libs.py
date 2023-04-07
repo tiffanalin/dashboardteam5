@@ -11,3 +11,6 @@ from datetime import date
 import numpy as np
 from datetime import datetime
 from datetime import date
+
+from scipy.signal import find_peaks
+import matplotlib.pyplot as plt

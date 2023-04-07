@@ -86,17 +86,17 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
     df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
 
     # peak detection
-    deriv_cases = np.gradient(df_final['cumulative_cases'])
-    deriv_deaths = np.gradient(df_final['cumulative_deaths'])
+    # deriv_cases = np.gradient(df_final['cumulative_cases'])
+    # deriv_deaths = np.gradient(df_final['cumulative_deaths'])
     
-    peak_cases = np.where(np.diff(np.sign(deriv_cases)) == -2)[0] + 1
-    peak_deaths = np.where(np.diff(np.sign(deriv_deaths)) == -2)[0] + 1
+    # peak_cases = np.where(np.diff(np.sign(deriv_cases)) == -2)[0] + 1
+    # peak_deaths = np.where(np.diff(np.sign(deriv_deaths)) == -2)[0] + 1
     
-    df_final['peak_cases'] = 0
-    df_final['peak_deaths'] = 0
+    # df_final['peak_cases'] = 0
+    # df_final['peak_deaths'] = 0
     
-    df_final.loc[peak_cases, 'peak_cases'] = df_final.loc[peak_cases, 'cumulative_cases']
-    df_final.loc[peak_deaths, 'peak_deaths'] = df_final.loc[peak_deaths, 'cumulative_deaths']
+    # df_final.loc[peak_cases, 'peak_cases'] = df_final.loc[peak_cases, 'cumulative_cases']
+    # df_final.loc[peak_deaths, 'peak_deaths'] = df_final.loc[peak_deaths, 'cumulative_deaths']
 
     return df_final
 
@@ -143,26 +143,33 @@ filtered_df = filtered_df[(filtered_df['date'] >= start_date) & (filtered_df['da
 # General (common) data preparation - for all app
 # cases, data type
 choice, column = get_choice(cases_or_deaths, data_type)
-
-show_peaks = None
-if data_type == 'Cumulative number':
-    # select to show peaks
-    show_peaks = st.sidebar.checkbox("Show peaks")
-    peak_column = 'peak_' + cases_or_deaths
-    st.header(peak_column)
-    peak_y_data = filtered_df[peak_column]
-    fig_2 = px.scatter(
-        filtered_df,
-        x = "date",
-        y = peak_y_data,
-        color = peak_column,
-        # hover_name="iso_code",
-        size_max = 60,
-    )
-    fig_2.update_layout(title="Peaks")
-    st.plotly_chart(fig_2, use_container_width=True)
-
+# st.header(column)
+# Draw the chart
 y_data = filtered_df[column]
+# chart = st.line_chart(filtered_df[column])
+
+# show_peaks = None
+# if data_type == 'cumulative number':
+#     # select to show peaks
+#     show_peaks = st.sidebar.checkbox("Show peaks")
+#     # filtr data - get peaks
+#     filtered_df = get_peaks(filtered_df, column, cases_or_deaths)
+#     # plot as layer
+#     # fig, ax = plt.subplots(figsize=(10, 6))
+#     # ax.scatter(filtered_df.date, filtered_df['cumulative_cases'], label='Cumulative Cases')
+#     # ax.legend("hello")
+#     # ax.set_xlabel('x lab')
+#     # ax.set_ylabel('y lab')
+
+#     # # Display the plot in Streamlit
+#     # st.pyplot(fig)
+
+#     # # Add the peaks to the chart
+#     # peak_values = filtered_df.loc[peak_cases, column]
+#     chart.add_rows(filtered_df.peak_cases)
+#     # chart.line_chart(filtered_df.column)
+
+
 fig_1 = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
 # fig = fig_1
 # if show_peaks == True:
