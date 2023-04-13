@@ -1,7 +1,11 @@
 from libs import *
 
 # getting special name of column in df
-def get_choice(cases_or_deaths, data_type):
+def get_choice(cases_or_deaths, data_type, data_type_choices):
+    st.write("get_choice")
+    st.write("Cases or? - ",cases_or_deaths)
+    st.write("Type - ",data_type)
+    st.write()
     choice = ''
 
     if cases_or_deaths == 'cases':
@@ -9,14 +13,20 @@ def get_choice(cases_or_deaths, data_type):
     elif cases_or_deaths == 'deaths':
         choice = 'deaths'
 
-    if data_type == 'raw number':
-        column = 'new_'+ choice +'_smoothed'
-    elif data_type == 'cumulative number':
+    column = ''
+    
+    if data_type == data_type_choices[0]: #'raw number':
+        column = 'new_'+ choice +'_per_million'
+    elif data_type == data_type_choices[1]: #'cumulative number':
         column = 'cumulative_' + choice
-    elif data_type == 'average - 7 days':
+    elif data_type == data_type_choices[2]: #'average - 7 days':
         column = 'average_' + choice
 
+    st.write("choise! - ",choice)
+    st.write("column - ",column)
+    
     return (choice, column)
+
 
 def get_peaks(filtered_df, column, cases_or_deaths):
     peaks, _ = find_peaks(filtered_df[column])

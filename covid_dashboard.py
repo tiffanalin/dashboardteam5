@@ -2,12 +2,16 @@ from libs import *
 from functions import *
 
 # OWID Covid-19 Data
-dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
+path = 'data/'
+file_name = 'owid-covid-data.csv'
+data_file = path + file_name
+
+# dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
 # read csv from a URL
 @st.cache_data
 def get_data() -> pd.DataFrame:
-    return pd.read_csv(dataset_url)
+    return pd.read_csv(data_file)
 df = get_data()
 
 
@@ -73,17 +77,20 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
     # normalize data to population (1,000,000 people)
-    df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
+    # df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
-    # raw data - total_cases/total_deaths
+    # raw data
+    # new_cases_per_million
+
     # cumulative data 
-    df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
-    df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
+    # total
+    df_final['cumulative_cases'] = df_final['total_cases_per_million']
+    df_final['cumulative_deaths'] = df_final['total_deaths_per_million']
     
     # average - for N days
-    days = 7
-    df_final['average_cases'] = df_final['cumulative_cases'].rolling(window = days).mean()
-    df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
+    # smoth
+    df_final['average_cases'] = df_final['new_cases_smoothed_per_million']
+    df_final['average_deaths'] = df_final['new_deaths_smoothed_per_million']
 
     # peak detection
     # deriv_cases = np.gradient(df_final['cumulative_cases'])
@@ -115,12 +122,13 @@ if st.checkbox('Show raw data'):
 st.sidebar.title(":mag_right: View Options:")
 
 # selected countries
-selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
+selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','Italy'], key='w1')
 
 cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['cases', 'deaths'])
 
 # select data type
-data_type = st.sidebar.selectbox("View Data type", ['raw number', 'cumulative number', 'average - 7 days'])
+data_type_choices = ['raw number', 'cumulative number', 'average - 7 days']
+data_type = st.sidebar.selectbox("View Data type", data_type_choices)
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
@@ -142,16 +150,16 @@ filtered_df = filtered_df[(filtered_df['date'] >= start_date) & (filtered_df['da
 
 # General (common) data preparation - for all app
 # cases, data type
-choice, column = get_choice(cases_or_deaths, data_type)
+choice, column = get_choice(cases_or_deaths, data_type, data_type_choices)
 # st.header(column)
 # Draw the chart
 y_data = filtered_df[column]
 # chart = st.line_chart(filtered_df[column])
 
 # show_peaks = None
-# if data_type == 'cumulative number':
-#     # select to show peaks
-#     show_peaks = st.sidebar.checkbox("Show peaks")
+if data_type == 'cumulative number':
+    # select to show peaks
+    show_peaks = st.sidebar.checkbox("Show peaks")
 #     # filtr data - get peaks
 #     filtered_df = get_peaks(filtered_df, column, cases_or_deaths)
 #     # plot as layer
@@ -176,6 +184,7 @@ fig_1 = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
 #     # show peaks
 #     fig_2 = px.scatter()
 #     fig = fig_1 + fig_2
+fig_1.update_layout(title= cases_or_deaths + " by location")
 st.plotly_chart(fig_1)
 
 year_col, continent_col,= st.columns([5, 5])
