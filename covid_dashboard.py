@@ -130,12 +130,12 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 
 # select data type
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
-m=st.sidebar.radio(
+show_by=st.sidebar.radio(
         "Show by Countries or Continent👉",
         key="visibility",
         options=["Countries", "Continent"],
     )
-if m=="Countries":
+if show_by=="Countries":
     all_countries = st.sidebar.checkbox("Select all countries")
     if all_countries:
         selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
@@ -143,7 +143,7 @@ if m=="Countries":
         selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
     filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
     
-elif m=="Continent":
+elif show_by=="Continent":
     all_continent=st.sidebar.checkbox("Select all continent")
     if all_continent:
         selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
