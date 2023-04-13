@@ -130,19 +130,27 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 
 # select data type
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
-# selected countinent
-all_continent=st.sidebar.checkbox("Select all continent")
-if all_continent:
-    selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
-else:
-    selected_continent = st.sidebar.multiselect("Select countries", continent)
+m=st.sidebar.radio(
+        "Show by Countries or Continent👉",
+        key="visibility",
+        options=["Countries", "Continent"],
+    )
+if m=="Countries":
+    all_countries = st.sidebar.checkbox("Select all countries")
+    if all_countries:
+        selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
+    else:
+        selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
+    filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
+    
+elif m=="Continent":
+    all_continent=st.sidebar.checkbox("Select all continent")
+    if all_continent:
+        selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
+    else:
+        selected_continent = st.sidebar.multiselect("Select countries", continent,default=["Europe"])
+    filtered_df = df_final[(df_final['continent'].isin(selected_continent))] 
 
-# selected countries
-all_countries = st.sidebar.checkbox("Select all countries")
-if all_countries:
-    selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
-else:
-    selected_countries = st.sidebar.multiselect("Select countries", countries, default=['World'])
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
@@ -150,7 +158,6 @@ st.header(":mask: Covid-19 Data")
 # select timeframe
 select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
 
-filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
 # filtered_df = filtered_df[(filtered_df.date == select_date)]
 # updates graph based on selected countries
 
