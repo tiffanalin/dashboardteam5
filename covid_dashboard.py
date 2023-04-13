@@ -121,6 +121,8 @@ df_final = get_Final_df(df, transform_cols)
 data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
 
+continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+
 # SIDEBAR
 # select box for cases vs. deaths
 st.sidebar.title(":mag_right: View Options:")
@@ -128,9 +130,27 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 
 # select data type
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+show_by=st.sidebar.radio(
+        "Show by Countries or Continent👉",
+        key="visibility",
+        options=["Countries", "Continent"],
+    )
+if show_by=="Countries":
+    all_countries = st.sidebar.checkbox("Select all countries")
+    if all_countries:
+        selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
+    else:
+        selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
+    filtered_place = df_final[(df_final['location'].isin(selected_countries))] 
+    
+elif show_by=="Continent":
+    all_continent=st.sidebar.checkbox("Select all continent")
+    if all_continent:
+        selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
+    else:
+        selected_continent = st.sidebar.multiselect("Select countries", continent,default=["Europe"])
+    filtered_place = df_final[(df_final['continent'].isin(selected_continent))] 
 
-# selected countries
-selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
@@ -138,16 +158,15 @@ st.header(":mask: Covid-19 Data")
 # select timeframe
 select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
 
-filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
-# filtered_df = filtered_df[(filtered_df.date == select_date)]
+filtered_df = filtered_place[(filtered_place.date == select_date)]
 # updates graph based on selected countries
 
 # General (common) data preparation - for all app
 # cases, data type
 choice, column = get_choice(cases_or_deaths, data_type)
-y_data = filtered_df[column]
+y_data = filtered_place[column]
 
-fig = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
+fig = px.line(filtered_place, x = 'date', y = y_data, color = 'location')
 st.plotly_chart(fig)
 
 year_col, size_choice,= st.columns([5, 5])
@@ -163,11 +182,11 @@ with size_choice:
     )
 
 # -- Apply the year filter given by the user
-filtered_df1 = df_final[(df_final.year == year_choice)&(df_final['location'].isin(selected_countries))]
+graph2_data = filtered_place[(df_final.year == year_choice)]
 # -- Apply the continent filter
 
 # -- Create the figure in Plotly
-fig = px.scatter(filtered_df1.groupby('location')[['iso_code','population',"total_deaths_per_million", "new_cases",'total_cases','total_deaths']].max().reset_index(),
+fig = px.scatter(graph2_data.groupby('location')[['iso_code','population',"total_deaths_per_million", "new_cases",'total_cases','total_deaths']].max().reset_index(),
     x="population",
     y="total_cases",
     size=size_choice,
