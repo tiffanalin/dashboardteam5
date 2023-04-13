@@ -121,6 +121,8 @@ df_final = get_Final_df(df, transform_cols)
 data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
 
+continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+
 # SIDEBAR
 # select box for cases vs. deaths
 st.sidebar.title(":mag_right: View Options:")
@@ -128,10 +130,16 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 
 # select data type
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+# selected countinent
+all_continent=st.sidebar.checkbox("Select all continent")
+if all_continent:
+    selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
+else:
+    selected_continent = st.sidebar.multiselect("Select countries", continent)
 
 # selected countries
-all = st.sidebar.checkbox("Select all countries")
-if all:
+all_countries = st.sidebar.checkbox("Select all countries")
+if all_countries:
     selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
 else:
     selected_countries = st.sidebar.multiselect("Select countries", countries, default=['World'])
