@@ -158,7 +158,7 @@ st.header(":mask: Covid-19 Data")
 # select timeframe
 select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
 
-# filtered_df = filtered_df[(filtered_df.date == select_date)]
+filtered_df = filtered_place[(filtered_place.date == select_date)]
 # updates graph based on selected countries
 
 # General (common) data preparation - for all app
@@ -182,11 +182,11 @@ with size_choice:
     )
 
 # -- Apply the year filter given by the user
-filtered_df1 = df_final[(df_final.year == year_choice)&(df_final['location'].isin(selected_countries))]
+graph2_data = filtered_place[(df_final.year == year_choice)]
 # -- Apply the continent filter
 
 # -- Create the figure in Plotly
-fig = px.scatter(filtered_df1.groupby('location')[['iso_code','population',"total_deaths_per_million", "new_cases",'total_cases','total_deaths']].max().reset_index(),
+fig = px.scatter(graph2_data.groupby('location')[['iso_code','population',"total_deaths_per_million", "new_cases",'total_cases','total_deaths']].max().reset_index(),
     x="population",
     y="total_cases",
     size=size_choice,
