@@ -1,15 +1,5 @@
-# from libs import *
-# from functions import *
-
-#streamlit
-import streamlit as st
-
-#data dependencies 
-import pandas as pd
-import plotly.express as px
-import warnings
-warnings.filterwarnings("ignore")
-from datetime import date
+from libs import *
+from functions import *
 
 # OWID Covid-19 Data
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
