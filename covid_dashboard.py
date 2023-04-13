@@ -179,23 +179,3 @@ fig = px.scatter(filtered_df1.groupby('location')[['iso_code','population',"tota
 fig.update_layout(title="population vs. total cases with size as total deaths")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
-
-# -- Create the figure in Plotly
-fig = px.scatter(
-    filtered_df,
-    x="new_cases",
-    y="new_deaths",
-    # size="new_deaths",
-    color="continent",
-    hover_name="iso_code",
-    
-    size_max=60,
-)
-fig.update_layout(title="new cases vs. new deaths")
-# -- Input the Plotly chart to the Streamlit interface
-st.plotly_chart(fig, use_container_width=True)
-
-
-df = filtered_df[["total_deaths","total_deaths","new_cases","new_deaths"]].apply(lambda x: (x-x.mean())/ x.std(), axis=0)
-st.line_chart(df)
-fig.update_layout(title = "total cases vs. total deaths vs ")
