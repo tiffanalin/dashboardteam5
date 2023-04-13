@@ -130,7 +130,11 @@ cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths
 data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
 
 # selected countries
-selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
+all = st.sidebar.checkbox("Select all countries")
+if all:
+    selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
+else:
+    selected_countries = st.sidebar.multiselect("Select countries", countries, default=['World'])
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
