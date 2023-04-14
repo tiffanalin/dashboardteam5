@@ -155,7 +155,7 @@ end_date = pd.Timestamp(end_date)
 
 filtered_df = filtered_place[(filtered_place['date'] >= start_date) & (filtered_place['date'] <= end_date)]
 
-# General (common) data preparation - for all app
+# General data preparation - for all app
 # get cases, data type
 choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
