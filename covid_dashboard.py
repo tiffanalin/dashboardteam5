@@ -2,6 +2,7 @@
 # from functions import *
 
 #streamlit
+import datetime
 import streamlit as st
 
 #data dependencies 
@@ -9,7 +10,7 @@ import pandas as pd
 import plotly.express as px
 import warnings
 warnings.filterwarnings("ignore")
-from datetime import date
+from datetime import date, timedelta
 
 # OWID Covid-19 Data
 dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
@@ -155,19 +156,19 @@ elif show_by=="Continent":
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 
-# select timeframe
-select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
-
-filtered_df = filtered_place[(filtered_place.date == select_date)]
-# updates graph based on selected countries
-
 # General (common) data preparation - for all app
 # cases, data type
 choice, column = get_choice(cases_or_deaths, data_type)
 y_data = filtered_place[column]
+min_date=pd.to_datetime(df_final.date).min().date()
+max_date=pd.to_datetime(df_final.date).max().date()
+print(min_date)
 
 fig = px.line(filtered_place, x = 'date', y = y_data, color = 'location')
 st.plotly_chart(fig)
+values = st.slider(
+    'Select a date range: ',
+    min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
 year_col, size_choice,= st.columns([5, 5])
 with year_col:
@@ -186,14 +187,14 @@ graph2_data = filtered_place[(df_final.year == year_choice)]
 # -- Apply the continent filter
 
 # -- Create the figure in Plotly
-fig = px.scatter(graph2_data.groupby('location')[['iso_code','population',"total_deaths_per_million", "new_cases",'total_cases','total_deaths']].max().reset_index(),
-    x="population",
-    y="total_cases",
+fig = px.scatter(filtered_place.groupby(['location',"year"])[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index(),
+    x="year",
+    y="total_cases_per_million",
     size=size_choice,
     color="location",
     hover_name="iso_code",
     
-    size_max=60,
+    size_max=30,
 )
 fig.update_layout(title="population vs. total cases with size as total deaths")
 # -- Input the Plotly chart to the Streamlit interface
