@@ -168,9 +168,9 @@ choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type,
 
 fig = px.line(filtered_df, x = 'date', y = column, color = 'location',labels={
                      "date": "Date (day)",
-                     column: "Cases Per Million" if choice == 'cases' else "Deaths Per Million" 
+                     column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
                  })
-fig.update_layout(title = cases_or_deaths + " Per day")
+fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
 
 y_col, size_choice,= st.columns([5, 5])
