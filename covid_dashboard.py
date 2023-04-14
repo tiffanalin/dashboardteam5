@@ -170,26 +170,26 @@ fig = px.line(filtered_df, x = 'date', y = column, color = 'location')
 fig.update_layout(title = cases_or_deaths + " by location")
 st.plotly_chart(fig)
 
-year_col, size_choice,= st.columns([5, 5])
-with year_col:
-    year_choice = st.selectbox(
-        "What year would you like to look at?",
-        ("2020","2021","2022","2023"),
+y_col, size_choice,= st.columns([5, 5])
+with y_col:
+    y_choice = st.selectbox(
+        "Choose Y axis:",
+        ("total_cases_per_million","2022","total_deaths_per_million"),
     )
 with size_choice:
     size_choice = st.selectbox(
         "Size of each point?",
-        ("total_deaths", "total_deaths_per_million", "new_cases"),
+        ("total_deaths_per_million","total_cases_per_million"),
     )
 
 # -- Apply the year filter given by the user
-graph2_data = filtered_place[(df_final.year == year_choice)]
+#graph2_data = filtered_place[(df_final.year == year_choice)]
 # -- Apply the continent filter
 
 # -- Create the figure in Plotly
 fig = px.scatter(filtered_place.groupby(['location',"year"])[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index(),
     x="year",
-    y="total_cases_per_million",
+    y=y_choice,
     size=size_choice,
     color="location",
     hover_name="iso_code",
