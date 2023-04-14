@@ -41,7 +41,7 @@ transform_cols = ['total_cases',
                   ]
 
 @st.cache_data
-def get_Final_df(df,transform_cols) -> pd.DataFrame:
+def get_final_df(df,transform_cols) -> pd.DataFrame:
     df["year"] = df["date"].str[0:4]
     
     #remove non-country data from 'location'
@@ -95,7 +95,7 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
 
 
 data_load_state = st.text('Loading data...')
-df_final = get_Final_df(df, transform_cols)
+df_final = get_final_df(df, transform_cols)
 data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
 
@@ -106,13 +106,18 @@ if st.checkbox('Show raw data'):
 continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
 
 # SIDEBAR
-# select box for cases vs. deaths
+# select cases or deaths
 st.sidebar.title(":mag_right: View Options:")
-cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+cases_or_deaths_choices = ['Cases', 'Deaths']
+cases_or_deaths = st.sidebar.selectbox("View cases or deaths",cases_or_deaths_choices)
 
 # select data type
-data_type_choices = ['raw number', 'cumulative number', 'average - 7 days']
+data_type_choices = ['Raw number', 'Cumulative number', 'Average - 7 days']
 data_type = st.sidebar.selectbox("View Data type", data_type_choices)
+
+if data_type == data_type_choices[1]: #'cumulative number'
+    # select to show peaks
+    show_peaks = st.sidebar.checkbox("Show peaks")
 
 show_by=st.sidebar.radio(
         "Show by Countries or Continent👉",
@@ -140,17 +145,22 @@ elif show_by=="Continent":
 st.header(":mask: Covid-19 Data")
 
 # select timeframe
-select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
+select_date = st.date_input('Choose a date range:', value=(date(2020,4,7), date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
+filtered_place['date'] = pd.to_datetime(filtered_place['date'])
 
-filtered_df = filtered_place[(filtered_place.date == select_date)]
-# updates graph based on selected countries
+start_date = datetime.combine(select_date[0], datetime.min.time())
+end_date = datetime.combine(select_date[1], datetime.min.time())
+start_date = pd.Timestamp(start_date)
+end_date = pd.Timestamp(end_date)
+
+filtered_df = filtered_place[(filtered_place['date'] >= start_date) & (filtered_place['date'] <= end_date)]
 
 # General (common) data preparation - for all app
-# cases, data type
-choice, column = get_choice(cases_or_deaths, data_type_)
-y_data = filtered_place[column]
+# get cases, data type
+choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
-fig = px.line(filtered_place, x = 'date', y = y_data, color = 'location')
+fig = px.line(filtered_df, x = 'date', y = column, color = 'location')
+fig.update_layout(title = cases_or_deaths + " by location")
 st.plotly_chart(fig)
 
 year_col, size_choice,= st.columns([5, 5])

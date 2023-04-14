@@ -1,20 +1,14 @@
 from libs import *
 
 # getting special name of column in df
-def get_choice(cases_or_deaths, data_type, data_type_choices):
-    # st.write("get_choice")
-    # st.write("Cases or? - ",cases_or_deaths)
-    # st.write("Type - ",data_type)
-    # st.write()
+def get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices):
     choice = ''
-
-    if cases_or_deaths == 'cases':
+    if cases_or_deaths == cases_or_deaths_choices[0]:
         choice = 'cases'
-    elif cases_or_deaths == 'deaths':
+    elif cases_or_deaths == cases_or_deaths_choices[1]:
         choice = 'deaths'
 
     column = ''
-    
     if data_type == data_type_choices[0]: #'raw number':
         column = 'new_'+ choice +'_per_million'
     elif data_type == data_type_choices[1]: #'cumulative number':
@@ -22,9 +16,6 @@ def get_choice(cases_or_deaths, data_type, data_type_choices):
     elif data_type == data_type_choices[2]: #'average - 7 days':
         column = 'average_' + choice
 
-    # st.write("choise! - ",choice)
-    # st.write("column - ",column)
-    
     return (choice, column)
 
 
