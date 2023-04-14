@@ -147,15 +147,19 @@ elif show_by=="Continent":
 st.header(":mask: Covid-19 Data")
 
 
-min_date=pd.to_datetime(df_final.date).min().date()
-max_date=pd.to_datetime(df_final.date).max().date()
+
 filtered_place['date'] = pd.to_datetime(filtered_place['date'])
 filtered_place['d']=[i.date() for i in filtered_place['date']]
+min_date=filtered_place['d'].min()
+max_date=filtered_place['d'].max()
 
-print(min_date)
+
+values = st.slider(
+    'Select a date range: ',
+    min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
 
-filtered_df = filtered_place[(filtered_place['d'] >= min_date) & (filtered_place['d']<= max_date)]
+filtered_df = filtered_place[(filtered_place['d'] >= values[0]) & (filtered_place['d']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
@@ -165,9 +169,6 @@ choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type,
 fig = px.line(filtered_df, x = 'date', y = column, color = 'location')
 fig.update_layout(title = cases_or_deaths + " by location")
 st.plotly_chart(fig)
-values = st.slider(
-    'Select a date range: ',
-    min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
 year_col, size_choice,= st.columns([5, 5])
 with year_col:
