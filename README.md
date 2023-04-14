@@ -40,3 +40,5 @@ You should be able to run: `streamlit hello`
 Run project with this command:
 `streamlit run covid_dashboard.py`
 
+## Code Archive at Software Heritage 
+[![SWH](https://archive.softwareheritage.org/badge/swh:1:dir:e78e5a2ae6a16a6a447aada511da8267b733e379/)](https://archive.softwareheritage.org/swh:1:dir:e78e5a2ae6a16a6a447aada511da8267b733e379;origin=https://github.com/tiffanalin/dashboardteam5;visit=swh:1:snp:b321a7e0b1ed784c77f02e6434cf788a29a40b91;anchor=swh:1:rev:96ded38a5b7ae7632ddc52ae47a08404df46f499)
