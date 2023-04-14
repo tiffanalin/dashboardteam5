@@ -2,32 +2,16 @@ from libs import *
 from functions import *
 
 # OWID Covid-19 Data
-dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
+# dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
+path = 'data/'
+file_name = 'owid-covid-data.csv'
+data_file = path + file_name
 
 # read csv from a URL
 @st.cache_data
 def get_data() -> pd.DataFrame:
-    return pd.read_csv(dataset_url)
+    return pd.read_csv(data_file)
 df = get_data()
-
-
-def get_choice(cases_or_deaths, data_type):
-    choice = ''
-
-    if cases_or_deaths == 'Cases':
-        choice = 'cases'
-    elif cases_or_deaths == 'Deaths':
-        choice = 'deaths'
-
-    if data_type == 'Raw number':
-        column = 'new_'+ choice +'_smoothed'
-    elif data_type == 'Cumulative number':
-        column = 'cumulative_' + choice
-    elif data_type == 'Average - 7 days':
-        column = 'average_' + choice
-
-    return (choice, column)
-
 
 def get_indexes(x):
     index_fill_1 = [i for i in range(x.index[0], x.dropna().index[0])]    
@@ -91,18 +75,22 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
     #normalize data to population (1,000,000 people)
-    df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
+    # df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
-    # Raw data - total_cases/total_deaths
-    # Cumulative data 
-    df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
-    df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
+    # raw data
+    # new_cases_per_million
+
+    # cumulative data 
+    # total
+    df_final['cumulative_cases'] = df_final['total_cases_per_million']
+    df_final['cumulative_deaths'] = df_final['total_deaths_per_million']
     
-    # Average - for N days
-    days = 7
-    df_final['average_cases'] = df_final['cumulative_cases'].rolling(window = days).mean()
-    df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
+    # average - for N days
+    # smoth
+    df_final['average_cases'] = df_final['new_cases_smoothed_per_million']
+    df_final['average_deaths'] = df_final['new_deaths_smoothed_per_million']
 
+    # peak detection
     return df_final
 
 
@@ -110,6 +98,10 @@ data_load_state = st.text('Loading data...')
 df_final = get_Final_df(df, transform_cols)
 data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
+
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df_final)
 
 continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
 
@@ -119,7 +111,9 @@ st.sidebar.title(":mag_right: View Options:")
 cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
 
 # select data type
-data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+data_type_choices = ['raw number', 'cumulative number', 'average - 7 days']
+data_type = st.sidebar.selectbox("View Data type", data_type_choices)
+
 show_by=st.sidebar.radio(
         "Show by Countries or Continent👉",
         key="visibility",
@@ -153,7 +147,7 @@ filtered_df = filtered_place[(filtered_place.date == select_date)]
 
 # General (common) data preparation - for all app
 # cases, data type
-choice, column = get_choice(cases_or_deaths, data_type)
+choice, column = get_choice(cases_or_deaths, data_type_)
 y_data = filtered_place[column]
 
 fig = px.line(filtered_place, x = 'date', y = y_data, color = 'location')
