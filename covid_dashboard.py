@@ -166,8 +166,11 @@ filtered_df = filtered_place[(filtered_place['d'] >= values[0]) & (filtered_plac
 choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
 
-fig = px.line(filtered_df, x = 'date', y = column, color = 'location')
-fig.update_layout(title = cases_or_deaths + " by location")
+fig = px.line(filtered_df, x = 'date', y = column, color = 'location',labels={
+                     "date": "Date (day)",
+                     column: "Cases Per Million" if choice == 'cases' else "Deaths Per Million" 
+                 })
+fig.update_layout(title = cases_or_deaths + " Per day")
 st.plotly_chart(fig)
 
 y_col, size_choice,= st.columns([5, 5])
@@ -194,8 +197,11 @@ fig = px.scatter(filtered_place.groupby(['location',"year"])[['iso_code',"total_
     color="location",
     hover_name="iso_code",
     
-    size_max=30,
+    size_max=30,labels={
+                     "year": "Year",
+                     y_choice: "Total Cases Per Million" if y_choice== "total_cases_per_million" else "Total Deaths Per Million"
+                 }
 )
-fig.update_layout(title="population vs. total cases with size as total deaths")
+fig.update_layout(title=" ")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
