@@ -1,43 +1,19 @@
-# from libs import *
-# from functions import *
+from libs import *
+from functions import *
 
-#streamlit
-import streamlit as st
-
-#data dependencies 
-import pandas as pd
-import plotly.express as px
-import warnings
-warnings.filterwarnings("ignore")
-from datetime import date
+from datetime import date, timedelta
 
 # OWID Covid-19 Data
-dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
+# dataset_url='https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
+path = 'data/'
+file_name = 'owid-covid-data.csv'
+data_file = path + file_name
 
 # read csv from a URL
 @st.cache_data
 def get_data() -> pd.DataFrame:
-    return pd.read_csv(dataset_url)
+    return pd.read_csv(data_file)
 df = get_data()
-
-
-def get_choice(cases_or_deaths, data_type):
-    choice = ''
-
-    if cases_or_deaths == 'Cases':
-        choice = 'cases'
-    elif cases_or_deaths == 'Deaths':
-        choice = 'deaths'
-
-    if data_type == 'Raw number':
-        column = 'new_'+ choice +'_smoothed'
-    elif data_type == 'Cumulative number':
-        column = 'cumulative_' + choice
-    elif data_type == 'Average - 7 days':
-        column = 'average_' + choice
-
-    return (choice, column)
-
 
 def get_indexes(x):
     index_fill_1 = [i for i in range(x.index[0], x.dropna().index[0])]    
@@ -67,7 +43,7 @@ transform_cols = ['total_cases',
                   ]
 
 @st.cache_data
-def get_Final_df(df,transform_cols) -> pd.DataFrame:
+def get_final_df(df,transform_cols) -> pd.DataFrame:
     df["year"] = df["date"].str[0:4]
     
     #remove non-country data from 'location'
@@ -101,109 +77,131 @@ def get_Final_df(df,transform_cols) -> pd.DataFrame:
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
     #normalize data to population (1,000,000 people)
-    df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
+    # df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
-    # Raw data - total_cases/total_deaths
-    # Cumulative data 
-    df_final['cumulative_cases'] = df_final['new_cases_smoothed'].cumsum()
-    df_final['cumulative_deaths'] = df_final['new_deaths_smoothed'].cumsum()
+    # raw data
+    # new_cases_per_million
+
+    # cumulative data 
+    # total
+    df_final['cumulative_cases'] = df_final['total_cases_per_million']
+    df_final['cumulative_deaths'] = df_final['total_deaths_per_million']
     
-    # Average - for N days
-    days = 7
-    df_final['average_cases'] = df_final['cumulative_cases'].rolling(window = days).mean()
-    df_final['average_deaths'] = df_final['cumulative_deaths'].rolling(window = days).mean()
+    # average - for N days
+    # smoth
+    df_final['average_cases'] = df_final['new_cases_smoothed_per_million']
+    df_final['average_deaths'] = df_final['new_deaths_smoothed_per_million']
 
+    # peak detection
     return df_final
 
 
 data_load_state = st.text('Loading data...')
-df_final = get_Final_df(df, transform_cols)
+df_final = get_final_df(df, transform_cols)
 data_load_state.text("Done with loading!)")
 countries = sorted(df_final['location'].unique())
 
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df_final)
+
+continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+
 # SIDEBAR
-# select box for cases vs. deaths
+# select cases or deaths
 st.sidebar.title(":mag_right: View Options:")
-cases_or_deaths = st.sidebar.selectbox("View cases or deaths", ['Cases', 'Deaths'])
+cases_or_deaths_choices = ['Cases', 'Deaths']
+cases_or_deaths = st.sidebar.selectbox("View cases or deaths",cases_or_deaths_choices)
 
 # select data type
-data_type = st.sidebar.selectbox("View Data type", ['Raw number', 'Cumulative number', 'Average - 7 days'])
+data_type_choices = ['Raw number', 'Cumulative number', 'Average - 7 days']
+data_type = st.sidebar.selectbox("View Data type", data_type_choices)
 
-# selected countries
-selected_countries = st.sidebar.multiselect("Select countries", countries, default=['France','World'], key='w1')
+if data_type == data_type_choices[1]: #'cumulative number'
+    # select to show peaks
+    show_peaks = st.sidebar.checkbox("Show peaks")
+
+show_by=st.sidebar.radio(
+        "Show by Countries or Continent👉",
+        key="visibility",
+        options=["Countries", "Continent"],
+    )
+if show_by=="Countries":
+    all_countries = st.sidebar.checkbox("Select all countries")
+    if all_countries:
+        selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
+    else:
+        selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
+    filtered_place = df_final[(df_final['location'].isin(selected_countries))] 
+    
+elif show_by=="Continent":
+    all_continent=st.sidebar.checkbox("Select all continent")
+    if all_continent:
+        selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
+    else:
+        selected_continent = st.sidebar.multiselect("Select countries", continent,default=["Europe"])
+    filtered_place = df_final[(df_final['continent'].isin(selected_continent))] 
+
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 
-# select timeframe
-select_date = st.date_input('Choose a date range:', value=(date(2023,4,7),date(2023,4,7)), min_value=date(2019,12,1),max_value=date(2023,4,30))
 
-filtered_df = df_final[(df_final['location'].isin(selected_countries))] 
-# filtered_df = filtered_df[(filtered_df.date == select_date)]
-# updates graph based on selected countries
 
-# General (common) data preparation - for all app
-# cases, data type
-choice, column = get_choice(cases_or_deaths, data_type)
-y_data = filtered_df[column]
+filtered_place['date'] = pd.to_datetime(filtered_place['date'])
+filtered_place['d']=[i.date() for i in filtered_place['date']]
+min_date=filtered_place['d'].min()
+max_date=filtered_place['d'].max()
 
-fig = px.line(filtered_df, x = 'date', y = y_data, color = 'location')
+
+values = st.slider(
+    'Select a date range: ',
+    min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
+
+
+filtered_df = filtered_place[(filtered_place['d'] >= values[0]) & (filtered_place['d']<= values[1])]
+
+# General data preparation - for all app
+# get cases, data type
+choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
+
+
+fig = px.line(filtered_df, x = 'date', y = column, color = 'location',labels={
+                     "date": "Date (day)",
+                     column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
+                 })
+fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
 
-year_col, continent_col,= st.columns([5, 5])
-with year_col:
-    year_choice = st.selectbox(
-        "What year would you like to look at?",
-        ("2020","2021","2022","2023"),
+y_col, size_choice,= st.columns([5, 5])
+with y_col:
+    y_choice = st.selectbox(
+        "Choose Y axis:",
+        ("total_cases_per_million","2022","total_deaths_per_million"),
     )
-with continent_col:
-    continent_choice = st.selectbox(
-        "What continent would you like to look at?",
-        ("All", "Asia", "Europe", "Africa", "Americas", "Oceania"),
+with size_choice:
+    size_choice = st.selectbox(
+        "Size of each point?",
+        ("total_deaths_per_million","total_cases_per_million"),
     )
 
 # -- Apply the year filter given by the user
-filtered_df1 = df_final[(df_final.year == year_choice)&(df_final['location'].isin(selected_countries))]
+#graph2_data = filtered_place[(df_final.year == year_choice)]
 # -- Apply the continent filter
-if continent_choice != "All":
-    filtered_df1 = filtered_df1[filtered_df1.continent == continent_choice]
 
 # -- Create the figure in Plotly
-fig = px.scatter(
-    filtered_df1,
-    x="total_cases",
-    y="total_deaths",
-    size="new_deaths",
+fig = px.scatter(filtered_place.groupby(['location',"year"])[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index(),
+    x="year",
+    y=y_choice,
+    size=size_choice,
     color="location",
     hover_name="iso_code",
     
-    size_max=60,
+    size_max=30,labels={
+                     "year": "Year",
+                     y_choice: "Total Cases Per Million" if y_choice== "total_cases_per_million" else "Total Deaths Per Million"
+                 }
 )
-fig.update_layout(title="total cases vs. total deaths")
+fig.update_layout(title=" ")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
-
-filtered_df = df_final[(df_final.year == year_choice)]
-# -- Apply the continent filter
-if continent_choice != "All":
-    filtered_df = filtered_df[filtered_df.continent == continent_choice]
-
-# -- Create the figure in Plotly
-fig = px.scatter(
-    filtered_df,
-    x="new_cases",
-    y="new_deaths",
-    # size="new_deaths",
-    color="continent",
-    hover_name="iso_code",
-    
-    size_max=60,
-)
-fig.update_layout(title="new cases vs. new deaths")
-# -- Input the Plotly chart to the Streamlit interface
-st.plotly_chart(fig, use_container_width=True)
-
-
-df = filtered_df[["total_deaths","total_deaths","new_cases","new_deaths"]].apply(lambda x: (x-x.mean())/ x.std(), axis=0)
-st.line_chart(df)
-fig.update_layout(title = "total cases vs. total deaths vs ")
