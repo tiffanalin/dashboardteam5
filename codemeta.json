@@ -1,0 +1,32 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "codeRepository": "https://github.com/tiffanalin/dashboardteam5",
+    "dateCreated": "2023-04-07",
+    "issueTracker": "https://github.com/tiffanalin/dashboardteam5/issues",
+    "name": "Covid-19 Dashboard",
+    "description": "Team 5's Covid-19 Dashboard",
+    "programmingLanguage": [
+        "Python"
+    ],
+    "softwareRequirements": [
+        "https://github.com/tiffanalin/dashboardteam5/blob/main/requirements.txt"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "givenName": "Tiffany",
+            "familyName": "Lin"
+        },
+        {
+            "@type": "Person",
+            "givenName": "Mariia",
+            "familyName": "Bai"
+        },
+        {
+            "@type": "Person",
+            "givenName": "Hala",
+            "familyName": "Albahloul"
+        }
+    ]
+}
