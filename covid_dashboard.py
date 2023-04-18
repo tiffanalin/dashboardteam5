@@ -39,13 +39,20 @@ def update_series(x):
 transform_cols = ['total_cases',
                   'total_deaths',
                   'total_deaths_per_million',
-                  'total_cases_per_million'
+                  'total_cases_per_million',
+                  'new_cases_per_million',
+                  'new_deaths_per_million',
+                  'new_cases_smoothed_per_million',
+                  'new_deaths_smoothed_per_million'
                   ]
-
+#Clean and fill missing data
 @st.cache_data
 def get_final_df(df,transform_cols) -> pd.DataFrame:
-    df["year"] = df["date"].str[0:4]
     
+    df["year"] = df["date"].str[0:4] #add year column
+    df.date = pd.to_datetime(df.date)  # convert string date to datetime
+    df['day']=[i.date() for i in df['date']]    #add day column
+
     #remove non-country data from 'location'
     filter_out = ['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
     df = df[~df['location'].isin(filter_out)]
@@ -55,9 +62,9 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
 
     # loop through each country
     for country in df.location.unique():
-        df_country = df[df.location == country]
-        df_country.date = pd.to_datetime(df_country.date)  # convert string date to datetime
+        df_country = df[df.location == country]        
         df_country = df_country.sort_values(by='date')  # sort by date
+        
 
         # apply transformation
         for col in transform_cols:
@@ -66,18 +73,11 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
         country_dfs.append(df_country)  # append unique country dataframe to list
         
     df_final = pd.concat(country_dfs)
-
     df_final = df_final.reset_index().sort_values(by=['location', 'date'])
     df_final = df_final.fillna(0)
-    
-    # return to string
-    df_final.date = df_final.date.astype(str)
-
+   
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
-
-    #normalize data to population (1,000,000 people)
-    # df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']]=df_final[['total_cases',	'new_cases',	'total_deaths',	'new_deaths',	'total_cases_per_million']].apply(lambda x: (x/(df["population"])*1000000),axis=0)
 
     # raw data
     # new_cases_per_million
@@ -97,15 +97,22 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
 
 
 data_load_state = st.text('Loading data...')
-df_final = get_final_df(df, transform_cols)
-data_load_state.text("Done with loading!)")
-countries = sorted(df_final['location'].unique())
 
+#get final df
+df_final = get_final_df(df, transform_cols)
+
+data_load_state.text("Done with loading!)")
+
+#get contries and continent
+countries = sorted(df_final['location'].unique())
+continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+min_date=df_final['day'].min()
+max_date=df_final['day'].max()
+
+#show df
 if st.checkbox('Show raw data'):
     st.subheader('Raw data')
     st.write(df_final)
-
-continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
 
 # SIDEBAR
 # select cases or deaths
@@ -121,11 +128,12 @@ if data_type == data_type_choices[1]: #'cumulative number'
     # select to show peaks
     show_peaks = st.sidebar.checkbox("Show peaks")
 
+#select countries or continent
 show_by=st.sidebar.radio(
         "Show by Countries or Continent👉",
         key="visibility",
-        options=["Countries", "Continent"],
-    )
+        options=["Countries", "Continent"],)
+
 if show_by=="Countries":
     all_countries = st.sidebar.checkbox("Select all countries")
     if all_countries:
@@ -146,30 +154,24 @@ elif show_by=="Continent":
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 
-
-
-filtered_place['date'] = pd.to_datetime(filtered_place['date'])
-filtered_place['d']=[i.date() for i in filtered_place['date']]
-min_date=filtered_place['d'].min()
-max_date=filtered_place['d'].max()
-
-
+#add time double_ended_slider
 values = st.slider(
     'Select a date range: ',
     min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
 
-filtered_df = filtered_place[(filtered_place['d'] >= values[0]) & (filtered_place['d']<= values[1])]
+filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
 choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
-
-fig = px.line(filtered_df, x = 'date', y = column, color = 'location',labels={
+#draw line chart
+fig = px.line(filtered_graph1, x = 'date', y = column, color = 'location',labels={
                      "date": "Date (day)",
                      column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
                  })
+
 fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
 
