@@ -148,7 +148,9 @@ elif show_by=="Continent":
         selected_continent = st.sidebar.multiselect("Select countinent", continent,continent)
     else:
         selected_continent = st.sidebar.multiselect("Select countinent", continent,default=["Europe"])
-    filtered_place = df_final[(df_final['continent'].isin(selected_continent))] 
+    filtered_place = df_final.groupby(['continent','day']).sum().reset_index()   
+    filtered_place = filtered_place[(df_final['continent'].isin(selected_continent))]
+    print(filtered_place)
 
 
 # MAIN PAGE 
@@ -167,8 +169,8 @@ filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtere
 choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
 #draw line chart
-fig = px.line(filtered_graph1, x = 'date', y = column, color = 'location',labels={
-                     "date": "Date (day)",
+fig = px.line(filtered_graph1, x = 'day', y = column, color = 'location' if show_by=="Countries" else 'continent',labels={
+                     "day": "Date (day)",
                      column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
                  })
 
