@@ -145,9 +145,9 @@ if show_by=="Countries":
 elif show_by=="Continent":
     all_continent=st.sidebar.checkbox("Select all continent")
     if all_continent:
-        selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
+        selected_continent = st.sidebar.multiselect("Select countinent", continent,continent)
     else:
-        selected_continent = st.sidebar.multiselect("Select countries", continent,default=["Europe"])
+        selected_continent = st.sidebar.multiselect("Select countinent", continent,default=["Europe"])
     filtered_place = df_final[(df_final['continent'].isin(selected_continent))] 
 
 
