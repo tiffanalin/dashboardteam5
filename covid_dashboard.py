@@ -39,7 +39,11 @@ def update_series(x):
 transform_cols = ['total_cases',
                   'total_deaths',
                   'total_deaths_per_million',
-                  'total_cases_per_million'
+                  'total_cases_per_million',
+                  'new_cases_per_million',
+                  'new_deaths_per_million',
+                  'new_cases_smoothed_per_million',
+                  'new_deaths_smoothed_per_million'
                   ]
 
 @st.cache_data
