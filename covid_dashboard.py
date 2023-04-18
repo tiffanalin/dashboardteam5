@@ -154,22 +154,24 @@ elif show_by=="Continent":
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
 
+#add time double_ended_slider
 values = st.slider(
     'Select a date range: ',
     min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
 
-filtered_df = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
+filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
 choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
-
-fig = px.line(filtered_df, x = 'date', y = column, color = 'location',labels={
+#draw line chart
+fig = px.line(filtered_graph1, x = 'date', y = column, color = 'location',labels={
                      "date": "Date (day)",
                      column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
                  })
+
 fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
 
