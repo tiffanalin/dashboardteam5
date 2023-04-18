@@ -106,6 +106,8 @@ data_load_state.text("Done with loading!)")
 #get contries and continent
 countries = sorted(df_final['location'].unique())
 continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+min_date=df_final['day'].min()
+max_date=df_final['day'].max()
 
 #show df
 if st.checkbox('Show raw data'):
@@ -151,11 +153,6 @@ elif show_by=="Continent":
 
 # MAIN PAGE 
 st.header(":mask: Covid-19 Data")
-
-
-min_date=filtered_place['day'].min()
-max_date=filtered_place['day'].max()
-
 
 values = st.slider(
     'Select a date range: ',
