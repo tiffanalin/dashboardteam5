@@ -148,8 +148,9 @@ elif show_by=="Continent":
         selected_continent = st.sidebar.multiselect("Select countinent", continent,continent)
     else:
         selected_continent = st.sidebar.multiselect("Select countinent", continent,default=["Europe"])
-        
+    
     filtered_place = df_final[(df_final['continent'].isin(selected_continent))]
+    filtered_place = filtered_place.groupby(["continent","day"]).sum().reset_index() 
     print(filtered_place)
 
 
