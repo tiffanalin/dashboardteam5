@@ -12,7 +12,17 @@ data_file = path + file_name
 # read csv from a URL
 @st.cache_data
 def get_data() -> pd.DataFrame:
-    return pd.read_csv(data_file)
+    df=pd.read_csv(data_file)
+    df=df[['iso_code','date','continent','location','total_cases',
+                  'total_deaths',
+                  'total_deaths_per_million',
+                  'total_cases_per_million',
+                  'new_cases_per_million',
+                  'new_deaths_per_million',
+                  'new_cases_smoothed_per_million',
+                  'new_deaths_smoothed_per_million'
+                  ]]
+    return df
 df = get_data()
 
 def get_indexes(x):
