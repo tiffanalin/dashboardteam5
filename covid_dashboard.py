@@ -145,6 +145,7 @@ show_by=st.sidebar.radio(
         options=["Countries", "Continent"],)
 
 if show_by=="Countries":
+    point_color="location" 
     all_countries = st.sidebar.checkbox("Select all countries")
     if all_countries:
         selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
@@ -152,8 +153,9 @@ if show_by=="Countries":
         selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
     filtered_place_graph1 = df_final[(df_final['location'].isin(selected_countries))]
     filtered_place_graph2 = df_final[(df_final['location'].isin(selected_countries))] 
-
+    filtered_place_graph2 = filtered_place_graph2.groupby(["location","year"]).max().reset_index()
 elif show_by=="Continent":
+    point_color="continent" 
     all_continent=st.sidebar.checkbox("Select all continent")
     if all_continent:
         selected_continent = st.sidebar.multiselect("Select countinent", continent,continent)
@@ -208,7 +210,7 @@ fig = px.scatter(filtered_place_graph2,
     x='year',
     y=y_choice,
     size=size_choice,
-    color='continent' if show_by=="continent" else 'location',
+    color=point_color,
     hover_name="iso_code",
     
     size_max=30,labels={
