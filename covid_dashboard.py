@@ -54,7 +54,7 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
     df['day']=[i.date() for i in df['date']]    #add day column
 
     #remove non-country data from 'location'
-    filter_out = ['Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
+    filter_out = ['World','Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
     df = df[~df['location'].isin(filter_out)]
 
     # loop through and subset each country to a list
@@ -145,10 +145,13 @@ if show_by=="Countries":
 elif show_by=="Continent":
     all_continent=st.sidebar.checkbox("Select all continent")
     if all_continent:
-        selected_continent = st.sidebar.multiselect("Select countries", continent,continent)
+        selected_continent = st.sidebar.multiselect("Select countinent", continent,continent)
     else:
-        selected_continent = st.sidebar.multiselect("Select countries", continent,default=["Europe"])
-    filtered_place = df_final[(df_final['continent'].isin(selected_continent))] 
+        selected_continent = st.sidebar.multiselect("Select countinent", continent,default=["Europe"])
+    
+    filtered_place = df_final[(df_final['continent'].isin(selected_continent))]
+    filtered_place = filtered_place.groupby(["continent","day"]).sum().reset_index() 
+    print(filtered_place)
 
 
 # MAIN PAGE 
@@ -159,16 +162,19 @@ values = st.slider(
     'Select a date range: ',
     min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
-
-filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
+if show_by=="continent":
+    filtered_graph1 = filtered_place.groupby('continent','day').sum().reset_index()
+    filtered_graph1=filtered_graph1[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
+else:
+    filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
 choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
 #draw line chart
-fig = px.line(filtered_graph1, x = 'date', y = column, color = 'location',labels={
-                     "date": "Date (day)",
+fig = px.line(filtered_graph1, x = 'day', y = column, color = 'location' if show_by=="Countries" else 'continent',labels={
+                     "day": "Date (day)",
                      column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
                  })
 
@@ -192,11 +198,15 @@ with size_choice:
 # -- Apply the continent filter
 
 # -- Create the figure in Plotly
-fig = px.scatter(filtered_place.groupby(['location',"year"])[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index(),
-    x="year",
+if show_by=='countries':
+    filtered_graph2=filtered_place.groupby("year")[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index()
+else:
+    filtered_graph2=filtered_place.groupby("year").sum().reset_index()
+fig = px.scatter(filtered_graph2,
+    x='year',
     y=y_choice,
     size=size_choice,
-    color="location",
+    color='continent',
     hover_name="iso_code",
     
     size_max=30,labels={
