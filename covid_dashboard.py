@@ -150,8 +150,9 @@ if show_by=="Countries":
         selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
     else:
         selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
-    filtered_place = df_final[(df_final['location'].isin(selected_countries))] 
-    
+    filtered_place_graph1 = df_final[(df_final['location'].isin(selected_countries))]
+    filtered_place_graph2 = df_final[(df_final['location'].isin(selected_countries))] 
+
 elif show_by=="Continent":
     all_continent=st.sidebar.checkbox("Select all continent")
     if all_continent:
@@ -159,8 +160,10 @@ elif show_by=="Continent":
     else:
         selected_continent = st.sidebar.multiselect("Select countinent", continent,default=["Europe"])
     
-    filtered_place = df_final[(df_final['continent'].isin(selected_continent))]
-    filtered_place = filtered_place.groupby(["continent","day"]).sum().reset_index() 
+    filtered_place_graph1 = df_final[(df_final['continent'].isin(selected_continent))]
+    filtered_place_graph1 = filtered_place_graph1.groupby(["continent","day"]).sum().reset_index()
+    filtered_place_graph2 = df_final[(df_final['continent'].isin(selected_continent))]
+    filtered_place_graph2 = filtered_place_graph2.groupby(["continent","year"]).max().reset_index()  
 
 
 
@@ -173,10 +176,10 @@ values = st.slider(
     min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
 if show_by=="continent":
-    filtered_graph1 = filtered_place.groupby('continent','day').sum().reset_index()
-    filtered_graph1=filtered_graph1[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
+    filtered_graph1 = filtered_place_graph1.groupby('continent','day').sum().reset_index()
+    filtered_graph1=filtered_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
 else:
-    filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
+    filtered_graph1 = filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
@@ -208,11 +211,8 @@ with size_choice:
 # -- Apply the continent filter
 
 # -- Create the figure in Plotly
-if show_by=='countries':
-    filtered_graph2=filtered_place.groupby("year")[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index()
-else:
-    filtered_graph2=filtered_place.groupby("year").sum().reset_index()
-fig = px.scatter(filtered_graph2,
+
+fig = px.scatter(filtered_place_graph2,
     x='year',
     y=y_choice,
     size=size_choice,
