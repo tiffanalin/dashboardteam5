@@ -12,7 +12,17 @@ data_file = path + file_name
 # read csv from a URL
 @st.cache_data
 def get_data() -> pd.DataFrame:
-    return pd.read_csv(data_file)
+    df=pd.read_csv(data_file)
+    df=df[['iso_code','date','continent','location','total_cases',
+                  'total_deaths',
+                  'total_deaths_per_million',
+                  'total_cases_per_million',
+                  'new_cases_per_million',
+                  'new_deaths_per_million',
+                  'new_cases_smoothed_per_million',
+                  'new_deaths_smoothed_per_million'
+                  ]]
+    return df
 df = get_data()
 
 def get_indexes(x):
@@ -105,7 +115,7 @@ data_load_state.text("Done with loading!)")
 
 #get contries and continent
 countries = sorted(df_final['location'].unique())
-continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+continent= sorted(df_final['continent'].unique())
 min_date=df_final['day'].min()
 max_date=df_final['day'].max()
 
@@ -135,23 +145,28 @@ show_by=st.sidebar.radio(
         options=["Countries", "Continent"],)
 
 if show_by=="Countries":
+    point_color="location" 
     all_countries = st.sidebar.checkbox("Select all countries")
     if all_countries:
         selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
     else:
         selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
-    filtered_place = df_final[(df_final['location'].isin(selected_countries))] 
-    
+    filtered_place_graph1 = df_final[(df_final['location'].isin(selected_countries))]
+    filtered_place_graph2 = df_final[(df_final['location'].isin(selected_countries))] 
+    filtered_place_graph2 = filtered_place_graph2.groupby(["location","year"]).max().reset_index()
 elif show_by=="Continent":
+    point_color="continent" 
     all_continent=st.sidebar.checkbox("Select all continent")
     if all_continent:
         selected_continent = st.sidebar.multiselect("Select countinent", continent,continent)
     else:
         selected_continent = st.sidebar.multiselect("Select countinent", continent,default=["Europe"])
     
-    filtered_place = df_final[(df_final['continent'].isin(selected_continent))]
-    filtered_place = filtered_place.groupby(["continent","day"]).sum().reset_index() 
-    print(filtered_place)
+    filtered_place_graph1 = df_final[(df_final['continent'].isin(selected_continent))]
+    filtered_place_graph1 = filtered_place_graph1.groupby(["continent","day"]).sum().reset_index()
+    filtered_place_graph2 = df_final[(df_final['continent'].isin(selected_continent))]
+    filtered_place_graph2 = filtered_place_graph2.groupby(["continent","year"]).max().reset_index()  
+
 
 
 # MAIN PAGE 
@@ -162,11 +177,7 @@ values = st.slider(
     'Select a date range: ',
     min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
-if show_by=="continent":
-    filtered_graph1 = filtered_place.groupby('continent','day').sum().reset_index()
-    filtered_graph1=filtered_graph1[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
-else:
-    filtered_graph1 = filtered_place[(filtered_place['day'] >= values[0]) & (filtered_place['day']<= values[1])]
+filtered_graph1=filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
@@ -181,39 +192,36 @@ fig = px.line(filtered_graph1, x = 'day', y = column, color = 'location' if show
 fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
 
+CHOICES = {"total_cases_per_million":"Total Cases Per Million","total_deaths_per_million":"Total Deaths Per Million"}
+
+def format_func(option):
+    return CHOICES[option]
+
 y_col, size_choice,= st.columns([5, 5])
 with y_col:
     y_choice = st.selectbox(
         "Choose Y axis:",
-        ("total_cases_per_million","2022","total_deaths_per_million"),
-    )
+        options=list(CHOICES.keys()), format_func=format_func)
+    
 with size_choice:
     size_choice = st.selectbox(
         "Size of each point?",
-        ("total_deaths_per_million","total_cases_per_million"),
-    )
-
-# -- Apply the year filter given by the user
-#graph2_data = filtered_place[(df_final.year == year_choice)]
-# -- Apply the continent filter
+        options=list(CHOICES.keys()), format_func=format_func)
+    
 
 # -- Create the figure in Plotly
-if show_by=='countries':
-    filtered_graph2=filtered_place.groupby("year")[['iso_code',"total_cases_per_million",'population',"total_deaths_per_million"]].max().reset_index()
-else:
-    filtered_graph2=filtered_place.groupby("year").sum().reset_index()
-fig = px.scatter(filtered_graph2,
+
+fig = px.scatter(filtered_place_graph2,
     x='year',
     y=y_choice,
     size=size_choice,
-    color='continent',
-    hover_name="iso_code",
-    
+    color=point_color,
+    hover_name="iso_code",    
     size_max=30,labels={
                      "year": "Year",
                      y_choice: "Total Cases Per Million" if y_choice== "total_cases_per_million" else "Total Deaths Per Million"
-                 }
-)
-fig.update_layout(title=" ")
+                 })
+
+fig.update_layout(title="Total Cases vs. Total Deaths")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
