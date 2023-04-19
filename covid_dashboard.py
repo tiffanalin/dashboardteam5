@@ -206,10 +206,6 @@ with size_choice:
         ("total_deaths_per_million","total_cases_per_million"),
     )
 
-# -- Apply the year filter given by the user
-#graph2_data = filtered_place[(df_final.year == year_choice)]
-# -- Apply the continent filter
-
 # -- Create the figure in Plotly
 
 fig = px.scatter(filtered_place_graph2,
@@ -224,6 +220,6 @@ fig = px.scatter(filtered_place_graph2,
                      y_choice: "Total Cases Per Million" if y_choice== "total_cases_per_million" else "Total Deaths Per Million"
                  }
 )
-fig.update_layout(title=" ")
+fig.update_layout(title="Total Cases vs. Total Deaths")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
