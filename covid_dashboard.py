@@ -192,17 +192,22 @@ fig = px.line(filtered_graph1, x = 'day', y = column, color = 'location' if show
 fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
 
+CHOICES = {"total_cases_per_million":"Total Cases Per Million","total_deaths_per_million":"Total Deaths Per Million"}
+
+def format_func(option):
+    return CHOICES[option]
+
 y_col, size_choice,= st.columns([5, 5])
 with y_col:
     y_choice = st.selectbox(
         "Choose Y axis:",
-        ("total_cases_per_million","total_deaths_per_million"),
-    )
+        options=list(CHOICES.keys()), format_func=format_func)
+    
 with size_choice:
     size_choice = st.selectbox(
         "Size of each point?",
-        ("total_deaths_per_million","total_cases_per_million"),
-    )
+        options=list(CHOICES.keys()), format_func=format_func)
+    
 
 # -- Create the figure in Plotly
 
@@ -211,13 +216,12 @@ fig = px.scatter(filtered_place_graph2,
     y=y_choice,
     size=size_choice,
     color=point_color,
-    hover_name="iso_code",
-    
+    hover_name="iso_code",    
     size_max=30,labels={
                      "year": "Year",
                      y_choice: "Total Cases Per Million" if y_choice== "total_cases_per_million" else "Total Deaths Per Million"
-                 }
-)
+                 })
+
 fig.update_layout(title="Total Cases vs. Total Deaths")
 # -- Input the Plotly chart to the Streamlit interface
 st.plotly_chart(fig, use_container_width=True)
