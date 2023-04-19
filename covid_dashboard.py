@@ -105,7 +105,7 @@ data_load_state.text("Done with loading!)")
 
 #get contries and continent
 countries = sorted(df_final['location'].unique())
-continent=['Asia', 'Europe', 'Africa' ,'Oceania', 'North America' ,'South America']
+continent= sorted(df_final['continent'].unique())
 min_date=df_final['day'].min()
 max_date=df_final['day'].max()
 
@@ -151,7 +151,7 @@ elif show_by=="Continent":
     
     filtered_place = df_final[(df_final['continent'].isin(selected_continent))]
     filtered_place = filtered_place.groupby(["continent","day"]).sum().reset_index() 
-    print(filtered_place)
+
 
 
 # MAIN PAGE 
