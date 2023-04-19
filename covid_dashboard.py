@@ -198,7 +198,7 @@ y_col, size_choice,= st.columns([5, 5])
 with y_col:
     y_choice = st.selectbox(
         "Choose Y axis:",
-        ("total_cases_per_million","2022","total_deaths_per_million"),
+        ("total_cases_per_million","total_deaths_per_million"),
     )
 with size_choice:
     size_choice = st.selectbox(
