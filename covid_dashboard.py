@@ -175,11 +175,7 @@ values = st.slider(
     'Select a date range: ',
     min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
-if show_by=="continent":
-    filtered_graph1 = filtered_place_graph1.groupby('continent','day').sum().reset_index()
-    filtered_graph1=filtered_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
-else:
-    filtered_graph1 = filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
+filtered_graph1=filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
@@ -212,7 +208,7 @@ fig = px.scatter(filtered_place_graph2,
     x='year',
     y=y_choice,
     size=size_choice,
-    color='continent',
+    color='continent' if show_by=="continent" else 'location',
     hover_name="iso_code",
     
     size_max=30,labels={
