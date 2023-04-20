@@ -25,20 +25,27 @@ def get_choice_and_column(cases_or_deaths, cases_or_deaths_choices, data_type, d
 
 def get_peak(df, calc_base_on_column, choice):
     column_name = '1_derivative_' + calc_base_on_column + choice
-    
+        
     df[column_name] = df[calc_base_on_column + choice].diff()
-    zoom = max(df[column_name]) - min(df[column_name])
-    zoom = zoom / 100 * 15
-    df[column_name] = df[column_name] * zoom
-    
+    zoom = (df[column_name].max() - df[column_name].min()) / 100
+    df[column_name] *= zoom / 5
+
     # fix first value
-    df.loc[0, '1_derivative_' + calc_base_on_column + choice] = 0
+    df.loc[df.index[0], column_name] = 0
     
     # calculate peaks
-    peaks = np.where(np.diff(np.sign(df['1_derivative_'+ calc_base_on_column + choice])) == -2)[0]
-    df['peak_' + choice] = np.nan
-    df.iloc[peaks, df.columns.get_loc('peak_' + choice)] = df.iloc[peaks, df.columns.get_loc(calc_base_on_column + choice)].values
+    derivative_col = '1_derivative_'+ calc_base_on_column + choice
     
+    # Find the index of peaks in the first derivative column
+    # A peak is identified as a point where the derivative changes from negative to positive
+    # peaks = df[derivative_col][((df[derivative_col].shift() < 0) & (df[derivative_col] > 0))].index
+    positive_values = df[derivative_col] > 0
+    shifted_values = df[derivative_col].shift() < 0
+    peaks = df[derivative_col][(shifted_values & positive_values)].index
+
+    df['peak_' + choice] = np.nan
+    df.loc[peaks, 'peak_' + choice] = df.loc[peaks, calc_base_on_column + choice].values
+
     return df
 
 
@@ -46,8 +53,8 @@ def calc_peaks(df):
     calc_base_on_column = 'cumulative_'
     
     choice = 'cases'
-    df = get_peak(df, calc_base_on_column, choice)
+    df_cases = get_peak(df, calc_base_on_column, choice)
     
     choice = 'deaths'
-    df = get_peak(df, calc_base_on_column, choice)
-    return df
+    df_deaths = get_peak(df_cases, calc_base_on_column, choice)
+    return df_deaths
