@@ -127,7 +127,7 @@ if st.checkbox('Show raw data'):
 # SIDEBAR
 st.sidebar.title(":mag_right: View Options:")
 
-#select countries or continent
+#select continent
 show_by=st.sidebar.radio(
         "Show by Countries or Continent👉",
         key="visibility",
@@ -135,11 +135,7 @@ show_by=st.sidebar.radio(
 
 if show_by=="Countries":
     point_color="location" 
-    all_countries = st.sidebar.checkbox("Select all countries")
-    if all_countries:
-        selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
-    else:
-        selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
+    selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
     filtered_place_graph1 = df_final[(df_final['location'].isin(selected_countries))]
     filtered_place_graph2 = df_final[(df_final['location'].isin(selected_countries))] 
     filtered_place_graph2 = filtered_place_graph2.groupby(["location","year"]).max().reset_index()
