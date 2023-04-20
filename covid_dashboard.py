@@ -116,12 +116,6 @@ continent= sorted(df_final['continent'].unique())
 min_date=df_final['day'].min()
 max_date=df_final['day'].max()
 
-
-# df_final.drop(df_final[df_final['location'] == 0].index, inplace=True)
-# todo: delete
-# print(df_final[df_final['location'] == 0])
-
-
 # SIDEBAR
 st.sidebar.title(":mag_right: View Options:")
 

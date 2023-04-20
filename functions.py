@@ -23,19 +23,29 @@ def get_choice_and_column(cases_or_deaths, cases_or_deaths_choices, data_type, d
     return (choice, column)
 
 
-def get_peak(df, calc_base_on_column, choice):
-    column_name = '1_derivative_' + calc_base_on_column + choice
-        
-    df[column_name] = df[calc_base_on_column + choice].diff()
-    zoom = (df[column_name].max() - df[column_name].min()) / 100
-    df[column_name] *= zoom / 5
+def get_multiplicity_counts(number_list):
+    counts = {}
+    for number in number_list:
+        if number in counts:
+            counts[number] += 1
+        else:
+            counts[number] = 1
+    max_count = max(counts.values())
+    return 10**(max_count - 1) if max_count > 1 else 1
 
-    # fix first value
-    df.loc[df.index[0], column_name] = 0
-    
-    # calculate peaks
+
+def get_peak(df, calc_base_on_column, choice):
     derivative_col = '1_derivative_'+ calc_base_on_column + choice
     
+    df[derivative_col] = df[calc_base_on_column + choice].diff()
+    range = df[calc_base_on_column + choice].max() - df[calc_base_on_column + choice].min()
+    zoom = range / 100 
+    df[derivative_col] *= zoom / 120
+
+    # fix first value
+    df.loc[df.index[0], derivative_col] = 0
+    
+    # calculate peaks
     # Find the index of peaks in the first derivative column
     # A peak is identified as a point where the derivative changes from negative to positive
     # peaks = df[derivative_col][((df[derivative_col].shift() < 0) & (df[derivative_col] > 0))].index
@@ -44,7 +54,11 @@ def get_peak(df, calc_base_on_column, choice):
     peaks = df[derivative_col][(shifted_values & positive_values)].index
 
     df['peak_' + choice] = np.nan
+    # based on index (peaks) save the value from column calc_base_on_column + choice
     df.loc[peaks, 'peak_' + choice] = df.loc[peaks, calc_base_on_column + choice].values
+    
+    # df['peak_' + choice] = df[calc_base_on_column + choice]
+    # df.loc[peaks, 'peak_' + choice] += df.loc[peaks, calc_base_on_column + choice].values
 
     return df
 
@@ -57,4 +71,5 @@ def calc_peaks(df):
     
     choice = 'deaths'
     df_deaths = get_peak(df_cases, calc_base_on_column, choice)
+    
     return df_deaths
