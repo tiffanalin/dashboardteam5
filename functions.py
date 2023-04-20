@@ -1,13 +1,17 @@
 from libs import *
 
-# getting special name of column in df
-def get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices):
-    choice = ''
+def get_choice(cases_or_deaths, cases_or_deaths_choices):
     if cases_or_deaths == cases_or_deaths_choices[0]:
         choice = 'cases'
     elif cases_or_deaths == cases_or_deaths_choices[1]:
         choice = 'deaths'
+    return choice
 
+
+# getting special name of column in df
+def get_choice_and_column(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices):
+    choice = get_choice(cases_or_deaths, cases_or_deaths_choices)
+    
     column = ''
     if data_type == data_type_choices[0]: #'raw number':
         column = 'new_'+ choice +'_per_million'
@@ -19,9 +23,31 @@ def get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_ch
     return (choice, column)
 
 
-def get_peaks(filtered_df, column, cases_or_deaths):
-    peaks, _ = find_peaks(filtered_df[column])
-    peak_column = 'peak_' + cases_or_deaths
-    filtered_df[peak_column] = np.nan
-    filtered_df.loc[peaks, peak_column] = filtered_df.loc[peaks, column]
-    return filtered_df
+def get_peak(df, calc_base_on_column, choice):
+    column_name = '1_derivative_' + calc_base_on_column + choice
+    
+    df[column_name] = df[calc_base_on_column + choice].diff()
+    zoom = max(df[column_name]) - min(df[column_name])
+    zoom = zoom / 100 * 15
+    df[column_name] = df[column_name] * zoom
+    
+    # fix first value
+    df.loc[0, '1_derivative_' + calc_base_on_column + choice] = 0
+    
+    # calculate peaks
+    peaks = np.where(np.diff(np.sign(df['1_derivative_'+ calc_base_on_column + choice])) == -2)[0]
+    df['peak_' + choice] = np.nan
+    df.iloc[peaks, df.columns.get_loc('peak_' + choice)] = df.iloc[peaks, df.columns.get_loc(calc_base_on_column + choice)].values
+    
+    return df
+
+
+def calc_peaks(df):
+    calc_base_on_column = 'cumulative_'
+    
+    choice = 'cases'
+    df = get_peak(df, calc_base_on_column, choice)
+    
+    choice = 'deaths'
+    df = get_peak(df, calc_base_on_column, choice)
+    return df

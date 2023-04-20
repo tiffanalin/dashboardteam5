@@ -67,6 +67,17 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
     filter_out = ['World','Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
     df = df[~df['location'].isin(filter_out)]
 
+    # raw data - used new_cases_per_million
+
+   # cumulative data - total
+    df['cumulative_cases'] = df['total_cases_per_million']
+    df['cumulative_deaths'] = df['total_deaths_per_million']
+    
+    # average - for N days - smooth
+    df['average_cases'] = df['new_cases_smoothed_per_million']
+    df['average_deaths'] = df['new_deaths_smoothed_per_million']
+
+
     # loop through and subset each country to a list
     country_dfs = []
 
@@ -89,18 +100,6 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
-    # raw data
-    # new_cases_per_million
-
-    # cumulative data 
-    # total
-    df_final['cumulative_cases'] = df_final['total_cases_per_million']
-    df_final['cumulative_deaths'] = df_final['total_deaths_per_million']
-    
-    # average - for N days
-    # smoth
-    df_final['average_cases'] = df_final['new_cases_smoothed_per_million']
-    df_final['average_deaths'] = df_final['new_deaths_smoothed_per_million']
 
     # peak detection
     return df_final
@@ -186,7 +185,7 @@ filtered_graph1=filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]
 
 # General data preparation - for all app
 # get cases, data type
-choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
+choice, column = get_choice_and_column(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
 #draw line chart
 fig = px.line(filtered_graph1, x = 'day', y = column, color = 'location' if show_by=="Countries" else 'continent',labels={
