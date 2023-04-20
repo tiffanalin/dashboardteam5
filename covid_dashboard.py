@@ -119,13 +119,13 @@ continent= sorted(df_final['continent'].unique())
 min_date=df_final['day'].min()
 max_date=df_final['day'].max()
 
-#show df
-if st.checkbox('Show raw data'):
-    st.subheader('Raw data')
-    st.write(df_final)
-
 # SIDEBAR
 st.sidebar.title(":mag_right: View Options:")
+
+#show df
+if st.sidebar.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df_final)
 
 #select continent
 show_by=st.sidebar.radio(
