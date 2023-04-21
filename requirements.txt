@@ -9,7 +9,5 @@ Plotly
 Matplotlib
 JupyterLab
 Streamlit
-Scipy
 
-###### Requirements with Version Specifiers ######
-# coming soon =)
+
