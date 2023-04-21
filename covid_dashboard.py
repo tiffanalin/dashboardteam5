@@ -173,9 +173,10 @@ with data_type:
     data_type = st.selectbox("View Data type", data_type_choices)
 
 show_peaks = None
-if data_type == data_type_choices[1]: #'cumulative number'
+if (data_type == data_type_choices[1] and show_by=='Countries'): #'cumulative number'
     # select to show peaks
     show_peaks = st.checkbox("Show peaks")
+
 
 #add time double_ended_slider
 values = st.slider('Select a date range: ',min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
@@ -200,6 +201,15 @@ if show_peaks == True:
     calc_base_on_column = 'cumulative_'
     peak_column = '1_derivative_' + calc_base_on_column + cases_or_deaths_choice
     figs = []
+    # if show_by == 'Continent':
+    #     for continent in selected_continent:
+    #         peak_label = '1 Derivative of ' + continent
+
+    #         fig.add_scatter(x=filtered_graph1[filtered_graph1['continent']==continent]['date'], 
+    #                         y=filtered_graph1[filtered_graph1['continent']==continent][peak_column], 
+    #                         mode='markers', 
+    #                         name=peak_label)
+    # else:
     for country in selected_countries:
         peak_label = '1 Derivative of ' + country
 
