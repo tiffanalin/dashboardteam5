@@ -30,7 +30,7 @@ https://docs.streamlit.io/streamlit-community-cloud </b>
 
 <b>Link to Streamlit App: 
 
-https://tiffanalin-dashboardteam5-covid-app-8i33k2.streamlit.app/ </b>
+https://tiffanalin-dashboardteam5-covid-dashboard-oatsmc.streamlit.app/</b>
 
 ## How to run the dashboard locally
 Use this commands to install Streamlit: `pip install streamlit`

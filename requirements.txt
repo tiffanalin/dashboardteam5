@@ -10,5 +10,4 @@ Matplotlib
 JupyterLab
 Streamlit
 
-###### Requirements with Version Specifiers ######
-# coming soon =)
+
