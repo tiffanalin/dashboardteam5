@@ -175,7 +175,7 @@ with data_type:
 show_peaks = None
 if data_type == data_type_choices[1]: #'cumulative number'
     # select to show peaks
-    show_peaks = st.sidebar.checkbox("Show peaks")
+    show_peaks = st.checkbox("Show peaks")
 
 #add time double_ended_slider
 values = st.slider('Select a date range: ',min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))

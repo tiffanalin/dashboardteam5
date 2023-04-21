@@ -1,5 +1,7 @@
 # dashboardteam5
-Open source dashboarding project
+Open Source Covid Dashboard
+
+The dashboard presents the latest statistics on confirmed cases, deaths, and vaccinations in countries around the world. Users can view charts and graphs that illustrate trends over time and compare different countries' experiences with the pandemic. 
 
 Team: Mari, Hala, Tiffany
 
