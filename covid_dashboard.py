@@ -67,6 +67,16 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
     filter_out = ['World','Asia','Europe','High income','Western Sahara','Upper middle income','Oceania','North America','Low income', 'Lower middle income','European Union','South America','Africa']
     df = df[~df['location'].isin(filter_out)]
 
+    # raw data - used new_cases_per_million
+
+   # cumulative data - total
+    df['cumulative_cases'] = df['total_cases_per_million']
+    df['cumulative_deaths'] = df['total_deaths_per_million']
+    
+    # average - for N days - smooth
+    df['average_cases'] = df['new_cases_smoothed_per_million']
+    df['average_deaths'] = df['new_deaths_smoothed_per_million']
+
     # loop through and subset each country to a list
     country_dfs = []
 
@@ -75,11 +85,12 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
         df_country = df[df.location == country]        
         df_country = df_country.sort_values(by='date')  # sort by date
         
-
         # apply transformation
         for col in transform_cols:
             df_country[col] = update_series(df_country[col]).astype(int)
 
+        df_country = calc_peaks(df_country)
+        
         country_dfs.append(df_country)  # append unique country dataframe to list
         
     df_final = pd.concat(country_dfs)
@@ -89,19 +100,6 @@ def get_final_df(df,transform_cols) -> pd.DataFrame:
     # remove duplicated columns
     df_final = df_final.loc[:, ~df_final.columns.duplicated()]
 
-    # raw data
-    # new_cases_per_million
-
-    # cumulative data 
-    # total
-    df_final['cumulative_cases'] = df_final['total_cases_per_million']
-    df_final['cumulative_deaths'] = df_final['total_deaths_per_million']
-    
-    # average - for N days
-    # smoth
-    df_final['average_cases'] = df_final['new_cases_smoothed_per_million']
-    df_final['average_deaths'] = df_final['new_deaths_smoothed_per_million']
-
     # peak detection
     return df_final
 
@@ -110,35 +108,23 @@ data_load_state = st.text('Loading data...')
 
 #get final df
 df_final = get_final_df(df, transform_cols)
+data_load_state.text("Done with loading!")
 
-data_load_state.text("Done with loading!)")
-
-#get contries and continent
 countries = sorted(df_final['location'].unique())
 continent= sorted(df_final['continent'].unique())
+#get contries and continent
 min_date=df_final['day'].min()
 max_date=df_final['day'].max()
 
+# SIDEBAR
+st.sidebar.title(":mag_right: View Options:")
+
 #show df
-if st.checkbox('Show raw data'):
+if st.sidebar.checkbox('Show raw data'):
     st.subheader('Raw data')
     st.write(df_final)
 
-# SIDEBAR
-# select cases or deaths
-st.sidebar.title(":mag_right: View Options:")
-cases_or_deaths_choices = ['Cases', 'Deaths']
-cases_or_deaths = st.sidebar.selectbox("View cases or deaths",cases_or_deaths_choices)
-
-# select data type
-data_type_choices = ['Raw number', 'Cumulative number', 'Average - 7 days']
-data_type = st.sidebar.selectbox("View Data type", data_type_choices)
-
-if data_type == data_type_choices[1]: #'cumulative number'
-    # select to show peaks
-    show_peaks = st.sidebar.checkbox("Show peaks")
-
-#select countries or continent
+#select continent
 show_by=st.sidebar.radio(
         "Show by Countries or Continent👉",
         key="visibility",
@@ -146,11 +132,7 @@ show_by=st.sidebar.radio(
 
 if show_by=="Countries":
     point_color="location" 
-    all_countries = st.sidebar.checkbox("Select all countries")
-    if all_countries:
-        selected_countries = st.sidebar.multiselect("Select countries", countries,countries)
-    else:
-        selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
+    selected_countries = st.sidebar.multiselect("Select countries", countries,default=["France"])
     filtered_place_graph1 = df_final[(df_final['location'].isin(selected_countries))]
     filtered_place_graph2 = df_final[(df_final['location'].isin(selected_countries))] 
     filtered_place_graph2 = filtered_place_graph2.groupby(["location","year"]).max().reset_index()
@@ -173,21 +155,58 @@ elif show_by=="Continent":
 st.header(":mask: Covid-19 Data")
 
 #add time double_ended_slider
-values = st.slider(
-    'Select a date range: ',
-    min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
+#values = st.slider(
+#    'Select a date range: ',
+#    min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
 
-filtered_graph1=filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
+#filtered_graph1=filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
+
+# select cases or deaths and data type (raw number, cumulative, average 7 days)
+cases_or_deaths, data_type,= st.columns([5, 5])
+
+with cases_or_deaths:
+    cases_or_deaths_choices = ['Cases', 'Deaths']
+    cases_or_deaths = st.selectbox("View cases or deaths",cases_or_deaths_choices)
+    
+with data_type:
+    data_type_choices = ['Raw number', 'Cumulative number', 'Average - 7 days']
+    data_type = st.selectbox("View Data type", data_type_choices)
+
+show_peaks = None
+if data_type == data_type_choices[1]: #'cumulative number'
+    # select to show peaks
+    show_peaks = st.sidebar.checkbox("Show peaks")
+
+#add time double_ended_slider
+values = st.slider('Select a date range: ',min_value=min_date,max_value=max_date, value=(date(2021,5,7),date(2022,4,7)),step=timedelta(days=1))
+
+filtered_graph1 = filtered_place_graph1[(filtered_place_graph1['day'] >= values[0]) & (filtered_place_graph1['day']<= values[1])]
 
 # General data preparation - for all app
 # get cases, data type
-choice, column = get_choice(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
+cases_or_deaths_choice, column = get_choice_and_column(cases_or_deaths, cases_or_deaths_choices, data_type, data_type_choices)
 
 #draw line chart
 fig = px.line(filtered_graph1, x = 'day', y = column, color = 'location' if show_by=="Countries" else 'continent',labels={
                      "day": "Date (day)",
-                     column: data_type+" Of Cases Per Million" if choice == 'cases' else data_type+" Of Deaths Per Million" 
+                     column: data_type+" Of Cases Per Million" if cases_or_deaths_choice == 'cases' else data_type+" Of Deaths Per Million" 
                  })
+
+# Show peaks
+if show_peaks == True:
+    st.header("Showing peaks")
+    # peak_column = 'peak_' + cases_or_deaths_choice
+    
+    calc_base_on_column = 'cumulative_'
+    peak_column = '1_derivative_' + calc_base_on_column + cases_or_deaths_choice
+    figs = []
+    for country in selected_countries:
+        peak_label = '1 Derivative of ' + country
+
+        fig.add_scatter(x=filtered_graph1[filtered_graph1['location']==country]['date'], 
+                        y=filtered_graph1[filtered_graph1['location']==country][peak_column], 
+                        mode='markers', 
+                        name=peak_label)
 
 fig.update_layout(title = cases_or_deaths + " Vs. Time")
 st.plotly_chart(fig)
